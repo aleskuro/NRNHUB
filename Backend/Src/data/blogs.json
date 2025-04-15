@@ -1,0 +1,108 @@
+[
+
+    {
+        "title": "Quick Tech Tips",
+        "description": "Short and sweet technology hacks",
+        "content": {
+            "tips": [
+                "Use keyboard shortcuts",
+                "Enable dark mode",
+                "Clear cache regularly"
+            ]
+        },
+        "coverImg": "https://example.com/tech-tips.jpg",
+        "category": "Technology",
+        "author": "67e60564072a5f95b23386de",
+        "rating": 4.2
+    },
+
+    {
+        "title": "Motherly Diaries: Episode 1",
+        "description": "First part of a parenting journey",
+        "content": {
+            "chapter1": {
+                "title": "The Beginning",
+                "text": "It all started with a surprise..."
+            },
+            "chapter2": {
+                "title": "First Steps",
+                "text": "Learning to balance life and parenthood"
+            },
+            "quotes": ["Love grows", "Time flies"]
+        },
+        "coverImg": "https://example.com/motherly1.jpg",
+        "category": "Lifestyle",
+        "author": "67e631a287fbfd38eb9afe31",
+        "rating": 4.9
+    },
+
+    {
+        "title": "Top 5 AI Tools",
+        "description": "Best AI tools for developers",
+        "content": {
+            "tools": [
+                {
+                    "name": "ChatGPT",
+                    "type": "NLP",
+                    "rating": 4.8
+                },
+                {
+                    "name": "Copilot",
+                    "type": "Code Assistant",
+                    "rating": 4.5
+                }
+            ],
+            "summary": "AI is revolutionizing coding"
+        },
+        "coverImg": "https://example.com/ai-tools.jpg",
+        "category": "Technology",
+        "author": "67e655fed9da378b5ef7d4a9"
+    },
+
+ 
+    {
+        "title": "Cooking Basics",
+        "description": "Essential cooking skills for beginners",
+        "content": {
+            "skills": {
+                "knifeSkills": true,
+                "timing": true,
+                "seasoning": false
+            },
+            "notes": "Practice makes perfect"
+        },
+        "coverImg": "https://example.com/cooking.jpg",
+        "category": "Food",
+        "author": "67e60564072a5f95b23386de",
+        "rating": 4.0
+    },
+
+    {
+        "title": "Motherly Diaries: Final Episode 3",
+        "description": "The concluding chapter of our journey",
+        "content": {
+            "episodes": [
+                {
+                    "number": 1,
+                    "events": ["First smile", "First word"],
+                    "memorable": true
+                },
+                {
+                    "number": 2,
+                    "events": ["First steps"],
+                    "memorable": false
+                }
+            ],
+            "reflection": "A bittersweet ending",
+            "stats": {
+                "duration": 3,
+                "episodes": 3,
+                "ratingAvg": 4.8
+            }
+        },
+        "coverImg": "https://example.com/motherly-final.jpg",
+        "category": "Lifestyle",
+        "author": "67e631a287fbfd38eb9afe31",
+        "rating": 4.8
+    }
+]
