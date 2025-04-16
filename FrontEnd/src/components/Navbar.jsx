@@ -15,8 +15,8 @@ const Navlists = [
     name: 'CULTURE',
     path: '/culture',
     dropdown: [
-      { name: 'Festivals', path: '/culture/festivals' },
-      { name: 'Tradition', path: '/culture/tradition' },
+      { name: 'FESTIVAL', path: '/culture/festivals' },
+      { name: 'TRADITION', path: '/culture/tradition' },
     ],
   },
   { name: 'SOCIAL', path: '/social' },
@@ -26,7 +26,7 @@ const Navlists = [
     path: '/blog',
     dropdown: [
       { name: 'TECHNOLOGY', path: '/blog/technology' },
-      { name: 'Travel', path: '/blog/travel' },
+      { name: 'TRAVEL', path: '/blog/travel' },
     ],
   },
   { name: 'TRENDING', path: '/trending' },

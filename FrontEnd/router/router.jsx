@@ -15,6 +15,7 @@ import Messages from "../src/pages/admin/Messages/Messages";
 import UpdatePost from "../src/pages/admin/Post/UpdatePost";
 import UpdateUserModal from "../src/pages/admin/user/UpdateUserModal";
 import ManageAds from "../src/pages/Ads/ManageAds";
+import BookACall from "../src/pages/admin/Messages/BookACall";
 
 const router = createBrowserRouter([
   {
@@ -26,6 +27,8 @@ const router = createBrowserRouter([
       { path: "blogs/:id", element: <SingleBlogs /> },
       { path: "login", element: <Login /> },
       { path: "registor", element: <Registor /> },
+      { path: "BookCall", element: <BookACall/> },
+      { path: "advertisers", element: <Advertisers /> },
       {
         path: "dashboard",
         element: <AdminLayout />,
@@ -34,7 +37,7 @@ const router = createBrowserRouter([
           { path: "add-new-post", element: <AddPost /> },
           { path: "manage-items", element: <ManagePost /> },
           { path: "users", element: <ManageUser /> },
-          { path: "advertisers", element: <Advertisers /> },
+         
           { path: "messages", element: <Messages /> },
           { path: "update-item/:id", element: <UpdatePost /> },
           { path: "update", element: <UpdateUserModal /> },

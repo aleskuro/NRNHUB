@@ -1,11 +1,12 @@
 import React from 'react';
 import { FaEnvelope, FaFacebook, FaInstagram, FaTiktok, FaTwitter, FaYoutube } from 'react-icons/fa';
+import { NavLink } from 'react-router-dom';
 import logo from './logo.png';
 import "/Users/user/Desktop/nnrnhub/FrontEnd/src/index.css";
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-r from-white to-gray-100 text-gray-800 py-16 overflow-hidden">
+    <footer className="bg-gradient-to-r from-[#ffffff] to-[#ffffff] text-gray-800 py-16 overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           {/* Logo & About */}
@@ -15,16 +16,16 @@ const Footer = () => {
               alt="NRNHUB Logo"
               className="h-16 mb-6 transform transition-transform duration-300 hover:scale-105"
             />
-            <p className="text-gray-700 text-sm leading-relaxed font-bold">
+            <p className="text-gray-700 text-sm leading-relaxed ">
               NRNHUB connects NRNs to their roots—through culture, community, and collective initiatives worldwide.
             </p>
             <hr className="my-4 border-gray-300" />
-            <p className="text-sm text-gray-500">© 2025 NRNHUB. All rights reserved.</p>
+            <p className="text-sm text-black ">© 2025 NRNHUB. All rights reserved.</p>
           </div>
 
           {/* Events & Initiatives */}
           <div className="animate-fade-in-up animation-delay-200">
-            <h3 className="text-lg font-semibold text-indigo-700 mb-4">Events & Initiatives</h3>
+            <h3 className="text-lg font-semibold text-red-700 mb-4">Events & Initiatives</h3>
             <ul className="space-y-3 text-sm">
               {[
                 'Global NRN Meetups',
@@ -46,9 +47,9 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="animate-fade-in-up animation-delay-400">
-            <h3 className="text-lg font-semibold text-indigo-700 mb-4">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-red-700 mb-4">Quick Links</h3>
             <ul className="space-y-3 text-sm">
-              {['Advertise with Us', 'Disclaimer', 'Privacy Policy', 'Terms & Conditions'].map(
+              {['Contact Us', 'Disclaimer', 'Privacy Policy', 'Terms & Conditions'].map(
                 (item, index) => (
                   <li key={index}>
                     <a
@@ -65,10 +66,8 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div className="animate-fade-in-up animation-delay-600">
-            <h3 className="text-lg font-semibold text-indigo-700 mb-4">Contact Us</h3>
+            <h3 className="text-lg font-semibold text-red-700 mb-4">Follow Us</h3>
             <div className="space-y-4 text-sm">
-             s
-
               {/* Social Links - Vertical */}
               <div className="space-y-3 text-lg">
                 <div className="flex items-center gap-3">
@@ -132,14 +131,15 @@ const Footer = () => {
 
         {/* Bottom Section */}
         <div className="border-t border-gray-200 mt-12 pt-6 text-center text-sm text-gray-500 animate-fade-in-up animation-delay-800">
-          <a
-            href="#"
-            className="relative inline-block mt-6 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg overflow-hidden group shadow-lg transition-all duration-300 hover:bg-indigo-700"
-          >
-            <span className="relative z-10">Advertise with Us</span>
-            <span className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            <span className="absolute top-0 left-0 w-full h-0 bg-white opacity-20 group-hover:h-full transition-all duration-500"></span>
-          </a>
+          <NavLink to="/advertisers">
+            <span
+              className="relative inline-block mt-6 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg overflow-hidden group shadow-lg transition-all duration-300 hover:bg-red-700"
+            >
+              <span className="relative z-10">Advertise with Us</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="absolute top-0 left-0 w-full h-0 bg-white opacity-20 group-hover:h-full transition-all duration-500"></span>
+            </span>
+          </NavLink>
         </div>
       </div>
     </footer>
