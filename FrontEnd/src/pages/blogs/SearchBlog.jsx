@@ -19,7 +19,7 @@ const SearchBlog = ({ search, handleSearchChange, handleSearch }) => {
       />
       <button
         onClick={handleSearch}
-        className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 font-semibold transition-colors duration-300"
+        className="bg-[#883FFF] hover:bg-[#893fffc4] text-white px-6 py-3 font-semibold transition-colors duration-300"
       >
         Search
       </button>

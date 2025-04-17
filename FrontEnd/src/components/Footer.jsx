@@ -25,7 +25,7 @@ const Footer = () => {
 
           {/* Events & Initiatives */}
           <div className="animate-fade-in-up animation-delay-200">
-            <h3 className="text-lg font-semibold text-red-700 mb-4">Events & Initiatives</h3>
+            <h3 className="text-lg font-semibold text-[#883FFF] mb-4">Events & Initiatives</h3>
             <ul className="space-y-3 text-sm">
               {[
                 'Global NRN Meetups',
@@ -45,28 +45,41 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Quick Links */}
-          <div className="animate-fade-in-up animation-delay-400">
-            <h3 className="text-lg font-semibold text-red-700 mb-4">Quick Links</h3>
-            <ul className="space-y-3 text-sm">
-              {['Contact Us', 'Disclaimer', 'Privacy Policy', 'Terms & Conditions'].map(
-                (item, index) => (
-                  <li key={index}>
-                    <a
-                      href="#"
-                      className="hover:text-indigo-600 transition duration-300 transform hover:translate-x-2 inline-block"
-                    >
-                      {item}
-                    </a>
-                  </li>
-                )
-              )}
-            </ul>
-          </div>
+           {/* Quick Links */}
+        <div className="animate-fade-in-up animation-delay-400">
+          <h3 className="text-lg font-semibold text-[#883FFF] mb-4">Quick Links</h3>
+          <ul className="space-y-3 text-sm">
+            {[
+              { name: 'Contact Us', path: '/messages' },
+              { name: 'Disclaimer', path: '#' },
+              { name: 'Privacy Policy', path: '#' },
+              { name: 'Terms & Conditions', path: '#' },
+            ].map((item, index) => (
+              <li key={index}>
+                {item.path === '#' ? (
+                  <a
+                    href={item.path}
+                    className="hover:text-indigo-600 transition duration-300 transform hover:translate-x-2 inline-block"
+                  >
+                    {item.name}
+                  </a>
+                ) : (
+                  <NavLink
+                  onClick={() => window.scrollTo(0, 0)}
+                    to={item.path}
+                    className="hover:text-indigo-600 transition duration-300 transform hover:translate-x-2 inline-block"
+                  >
+                    {item.name}
+                  </NavLink>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
 
           {/* Contact Info */}
           <div className="animate-fade-in-up animation-delay-600">
-            <h3 className="text-lg font-semibold text-red-700 mb-4">Follow Us</h3>
+            <h3 className="text-lg font-semibold text-[#883FFF] mb-4">Follow Us</h3>
             <div className="space-y-4 text-sm">
               {/* Social Links - Vertical */}
               <div className="space-y-3 text-lg">
@@ -130,13 +143,13 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="border-t border-gray-200 mt-12 pt-6 text-center text-sm text-gray-500 animate-fade-in-up animation-delay-800">
-          <NavLink to="/advertisers">
+        <div className="border-t border-gray-200 mt-12 pt-6 text-center text-sm text-gray-500 animate-fade-in-up animation-delay-800" >
+          <NavLink to="/advertisers" onClick={() => window.scrollTo(0, 0)}>
             <span
-              className="relative inline-block mt-6 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg overflow-hidden group shadow-lg transition-all duration-300 hover:bg-red-700"
+              className="relative inline-block mt-6 px-6 py-3 bg-[#883FFF] text-white font-semibold rounded-lg overflow-hidden group shadow-lg transition-all duration-300 hover:bg-red-700"
             >
               <span className="relative z-10">Advertise with Us</span>
-              <span className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <span className="absolute inset-0 bg-gradient-to-r from-[#883FFF] to-[#9452fd] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <span className="absolute top-0 left-0 w-full h-0 bg-white opacity-20 group-hover:h-full transition-all duration-500"></span>
             </span>
           </NavLink>

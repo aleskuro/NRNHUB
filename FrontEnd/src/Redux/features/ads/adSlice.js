@@ -8,7 +8,7 @@ const loadFromLocalStorage = () => {
     const state = JSON.parse(serializedState);
     // Ensure adLinks exists
     if (!state.adLinks) {
-      state.adLinks = { mobile: '', right: '', left: '', bottom: '', hero: '' };
+      state.adLinks = { mobile: '', right: '', left: '', bottom: '', navbar: '' };
     }
     return state;
   } catch (err) {
@@ -22,20 +22,20 @@ const defaultState = {
   rightAdVisible: false,
   leftAdVisible: false,
   bottomAdVisible: false,
-  heroAdVisible: false,
+  navbarAdVisible: false,
   adImages: {
     mobile: null,
     right: null,
     left: null,
     bottom: null,
-    hero: null,
+    navbar: null,
   },
   adLinks: {
     mobile: '',
     right: '',
     left: '',
     bottom: '',
-    hero: '',
+    navbar: '',
   },
 };
 

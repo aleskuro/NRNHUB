@@ -1,9 +1,11 @@
 import React from 'react'
 
-export default function Social() {
+const Social = () => {
   return (
     <div>
-      SOCIAL
+      
     </div>
   )
 }
+
+export default Social

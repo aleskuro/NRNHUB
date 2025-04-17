@@ -90,7 +90,7 @@ const SingleBlogCards = ({ blog }) => {
         <h1 className="md:text-4xl text-3xl font-medium mb-4">{title}</h1>
         <p className="mb-6">
           {formatDate(createdAt)} by
-          <span className="text-blue-400 cursor-pointer"> {author || 'Unknown Author'} </span>
+          <span className="text-blue-400 cursor-pointer"> {blog.author || 'Unknown Author'} </span>
         </p>
       </div>
 

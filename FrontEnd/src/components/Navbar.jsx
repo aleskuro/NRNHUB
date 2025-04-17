@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import commentor from '../assets/commentor.png';
 import noImage from '../assets/images.png';
+import logo from './logo.png';
 
 // Define the navigation links and their paths
 const Navlists = [
@@ -35,6 +36,7 @@ const Navlists = [
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
+  const { navbarAdVisible, adImages, adLinks } = useSelector((state) => state.ads);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const profileRef = useRef(null);
@@ -46,7 +48,7 @@ const Navbar = () => {
   const { data: blogs = [], isLoading } = useFetchBlogsQuery({ search: '', category: '' });
   const latestBlogs = [...blogs]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 3); // Limit to 3 for dropdown
+    .slice(0, 3);
 
   const formatDate = () =>
     new Date().toLocaleDateString('en-US', {
@@ -68,12 +70,12 @@ const Navbar = () => {
     const timeout = setTimeout(() => {
       setDropdowns((prev) => ({
         ...prev,
-        [name]: { ...prev[name], visible: false },
+        [name]: { visible: false, timeout: null },
       }));
     }, 1200);
     setDropdowns((prev) => ({
       ...prev,
-      [name]: { ...prev[name], timeout },
+      [name]: { visible: true, timeout },
     }));
   };
 
@@ -106,14 +108,11 @@ const Navbar = () => {
         setDropdowns((prev) => ({ ...prev, profile: { visible: false } }));
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [profileRef]);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-  // Truncate title function from Blogs
+  // Truncate title for blog dropdown
   const truncateTitle = (title, maxLength = 30) => {
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength - 3) + '...';
@@ -122,34 +121,61 @@ const Navbar = () => {
   return (
     <header className="bg-white text-black shadow sticky top-0 z-50 w-full">
       <div className="container mx-auto px-4 py-2 flex items-center relative">
-        {/* Left Section - Logo and Date */}
-        <div className="flex flex-col">
+        {/* Left Section - Logo */}
+        <div className="flex flex-col items-center">
           <NavLink to="/" className="flex flex-col items-center">
             <h1
               className="relative text-4xl md:text-5xl font-extrabold tracking-wider"
-              style={{ fontFamily: '"Luxurious Roman", serif' }}
+              style={{ fontFamily: 'Montserrat, sans-serif' }}
             >
-              <span className="text-blue-600">NRN</span>
-              <span className="text-red-600">HUB</span>
-              <span
-                className="absolute inset-0 text-4xl md:text-5xl font-extrabold tracking-wider text-gray-200 opacity-10 blur-md"
-                style={{ fontFamily: '"Luxurious Roman", serif' }}
-              >
-                NRNHUB
-              </span>
+              <img
+                src={logo}
+                alt="NRNHUB Logo"
+                className="h-18 mb-6 transform transition-transform duration-300 hover:scale-105"
+              />
             </h1>
           </NavLink>
+        </div>
+
+        {/* Middle Section - Ad Banner */}
+        {navbarAdVisible && (
+          <div className="flex-1 mx-4 flex justify-center items-center">
+            {adImages.navbar ? (
+              <a
+                href={adLinks.navbar || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg shadow-md text-center"
+                onClick={() => console.log('Navbar ad clicked:', adLinks.navbar)}
+              >
+                <img
+                  src={adImages.navbar}
+                  alt="Navbar Ad"
+                  className="max-w-[1152px] h-16 md:h-40 object-cover rounded-lg"
+                  onError={(e) => {
+                    console.error(`Failed to load navbar ad image: ${adImages.navbar}`);
+                    e.target.src = noImage;
+                  }}
+                />
+              </a>
+            ) : (
+              <div className="bg-gray-100 p-3 rounded-lg shadow-md text-center">
+                <p className="text-gray-600 font-semibold text-sm">
+                  Navbar Ad Placeholder - Upload an image in Manage Ads
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Right Section - Date and Menu Trigger */}
+        <div className="flex items-center gap-4">
           <div
-            className="text-sm text-gray-700 mt-1 hidden md:block"
+            className="text-sm text-gray-700 hidden md:block"
             style={{ fontFamily: '"Luxurious Roman", serif' }}
           >
             {formatDate()}
           </div>
-        </div>
-
-        {/* Right Section - Menu Trigger and User/Auth */}
-        <div className="flex items-center gap-4 ml-auto">
-          {/* Mobile Menu Trigger */}
           <button
             className="text-2xl md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -158,74 +184,19 @@ const Navbar = () => {
           >
             {menuOpen ? '✕' : '☰'}
           </button>
-
-          {/* User/Auth */}
-          {!user && (
-            <div className="hidden md:flex items-center gap-4">
-              <NavLink
-                to="/login"
-                className="px-5 py-2 rounded-lg text-lg font-semibold bg-[#2260bf] text-white hover:bg-[#1e55a8] transition-all duration-300 shadow-lg hover:shadow-[#1e55a8]/50"
-              >
-                Login
-              </NavLink>
-              <NavLink
-                to="/register"
-                className="px-5 py-2 rounded-lg text-lg font-semibold bg-[#2260bf] text-white hover:bg-[#1e55a8] transition-all duration-300 shadow-lg hover:shadow-[#1e55a8]/50"
-              >
-                Sign In
-              </NavLink>
-            </div>
-          )}
-          {user && (
-            <div className="relative" ref={profileRef}>
-              <button
-                className="focus:outline-none"
-                onClick={toggleProfileDropdown}
-                aria-label="User Profile"
-              >
-                <img
-                  src={commentor}
-                  alt="User"
-                  className="w-10 h-10 rounded-full border-2 border-indigo-500 shadow-md hover:scale-105 hover:rotate-6 transition-all duration-300 ease-in-out cursor-pointer animate-[pulse-border_2s_infinite]"
-                />
-              </button>
-              {dropdowns.profile?.visible && (
-                <div
-                  className={`absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl z-50 transition-all duration-300 ease-in-out ${
-                    dropdowns.profile?.visible
-                      ? 'opacity-100 pointer-events-auto translate-y-0'
-                      : 'opacity-0 pointer-events-none -translate-y-2'
-                  }`}
-                >
-                  <div className="px-4 py-3 text-base font-medium text-gray-900 border-b border-gray-100">
-                    👋 {user.username || 'User'}
-                  </div>
-                  {user.role === "admin" && (
-                    <NavLink
-                      to="/dashboard"
-                      className="block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#2260bf] transition-all duration-200 cursor-pointer"
-                      onClick={() => setDropdowns((prev) => ({ ...prev, profile: { visible: false } }))}
-                    >
-                      Dashboard
-                    </NavLink>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
       {/* Desktop Navigation */}
-      <nav className="hidden md:block w-full" style={{ backgroundColor: '#2260bf' }}>
-        <div className="mx-auto px-4 py-3 flex justify-start">
-          <ul className="flex gap-8 ml-120">
+      <nav
+        className="hidden md:flex w-full items-center px-4 transition-all duration-500 hover:bg-[length:200%_auto] hover:bg-right bg-white"
+        style={{
+          backgroundSize: '200% auto',
+          backgroundPosition: 'left center',
+        }}
+      >
+        <div className="flex-1 flex justify-center">
+          <ul className="flex gap-2 mr-1 ml-65">
             {Navlists.map((list, index) => (
               <li key={index} className="relative">
                 {list.dropdown ? (
@@ -236,11 +207,10 @@ const Navbar = () => {
                     <NavLink
                       to={list.path}
                       className={({ isActive }) =>
-                        `text-lg font-bold text-white hover:text-[#70c9ff] transition-all duration-300 ${
-                          isActive ? 'text-[#70c9ff]' : ''
+                        `inline-block px-4 py-2 text-lg font-bold bg-white text-black hover:text-[#C4A1FF] rounded-md transition-all duration-300 ${
+                          isActive ? 'text-[#C4A1FF]' : ''
                         }`
                       }
-                      style={{ fontFamily: '"Luxurious Roman", serif' }}
                     >
                       {list.name} <span className="ml-1 text-sm">▼</span>
                     </NavLink>
@@ -264,18 +234,19 @@ const Navbar = () => {
                                 key={blog._id}
                                 to={`/blogs/${blog._id}`}
                                 className="flex gap-4 p-3 hover:bg-gray-50 rounded-md transition-all duration-300 group"
+                                onClick={() => window.scrollTo(0, 0)}
                               >
                                 <img
-                                  src={blog.coverImg}
+                                  src={blog.image ? blog.image.url : blog.coverImg}
                                   alt={blog.title}
                                   className="w-16 h-16 object-cover rounded group-hover:scale-105 transition-transform"
                                   onError={(e) => (e.target.src = noImage)}
                                 />
                                 <div>
-                                  <h4 className="text-base font-medium text-gray-900 group-hover:text-[#2260bf]">
+                                  <h4 className="text-base font-medium text-gray-900 group-hover:text-[#C4A1FF]">
                                     {truncateTitle(blog.title)}
                                   </h4>
-                                  <span className="text-sm text-[#70c9ff]">
+                                  <span className="text-sm text-[#C4A1FF]">
                                     {blog.category || 'General'}
                                   </span>
                                 </div>
@@ -294,11 +265,11 @@ const Navbar = () => {
                             <NavLink
                               to={item.path}
                               className={({ isActive }) =>
-                                `block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#2260bf] transition-all duration-200 ${
-                                  isActive ? 'text-[#2260bf]' : ''
+                                `block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#C4A1FF] transition-all duration-200 ${
+                                  isActive ? 'text-[#C4A1FF]' : ''
                                 }`
                               }
-                              style={{ fontFamily: '"Luxurious Roman", serif' }}
+                              onClick={() => window.scrollTo(0, 0)}
                             >
                               {item.name}
                             </NavLink>
@@ -311,11 +282,11 @@ const Navbar = () => {
                   <NavLink
                     to={list.path}
                     className={({ isActive }) =>
-                      `text-lg font-bold text-white hover:text-[#70c9ff] transition-all duration-300 ${
-                        isActive ? 'text-[#70c9ff]' : ''
+                      `inline-block px-4 py-2 text-lg font-bold bg-white text-black hover:text-[#C4A1FF] rounded-md transition-all duration-300 ${
+                        isActive ? 'text-[#C4A1FF]' : ''
                       }`
                     }
-                    style={{ fontFamily: '"Luxurious Roman", serif' }}
+                    onClick={() => window.scrollTo(0, 0)}
                   >
                     {list.name}
                   </NavLink>
@@ -323,6 +294,78 @@ const Navbar = () => {
               </li>
             ))}
           </ul>
+        </div>
+
+        {/* Auth Section on far right */}
+        <div className="flex items-center gap-2 pr-15">
+          {!user ? (
+            <>
+              <NavLink
+                to="/subscribe"
+                className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold shadow-md hover:scale-105 transition-transform"
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                Subscribe
+              </NavLink>
+              <NavLink
+                to="/login"
+                className="inline-block px-5 py-2 text-lg font-bold uppercase border-1 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                Login
+              </NavLink>
+              <NavLink
+                to="/register"
+                className="px-4 py-2 rounded-lg bg-[#883FFF] text-white font-semibold shadow-md hover:scale-105 transition-transform"
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                Register
+              </NavLink>
+            </>
+          ) : (
+            <div className="relative mr-4" ref={profileRef}>
+              <button
+                className="focus:outline-none"
+                onClick={toggleProfileDropdown}
+                aria-label="User Profile"
+              >
+                <img
+                  src={commentor}
+                  alt="User"
+                  className="w-10 h-10 rounded-full border-2 border-[#C4A1FF] shadow-md hover:scale-105 hover:rotate-6 transition-all duration-300 ease-in-out cursor-pointer animate-[pulse-border_2s_infinite]"
+                />
+              </button>
+              {dropdowns.profile?.visible && (
+                <div
+                  className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl z-50 transition-all duration-300 ease-in-out"
+                >
+                  <div className="px-4 py-3 text-base font-medium text-gray-900 border-b border-gray-100">
+                    👋 {user.username || 'User'}
+                  </div>
+                  {user.role === 'admin' && (
+                    <NavLink
+                      to="/dashboard"
+                      className="block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#C4A1FF] transition-all duration-200 cursor-pointer"
+                      onClick={() => {
+                        setDropdowns((prev) => ({ ...prev, profile: { visible: false } }));
+                        window.scrollTo(0, 0);
+                      }}
+                      style={{ fontFamily: '"Luxurious Roman", serif' }}
+                    >
+                      Dashboard
+                    </NavLink>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
+                    style={{ fontFamily: '"Luxurious Roman", serif' }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </nav>
 
@@ -336,26 +379,8 @@ const Navbar = () => {
             >
               {formatDate()}
             </div>
-            {!user && (
-              <div className="flex flex-col gap-2 w-full items-center mb-3">
-                <NavLink
-                  to="/login"
-                  className="block w-full bg-[#2260bf] text-white text-center py-3 px-5 rounded-md text-lg font-semibold hover:bg-[#1e55a8] transition shadow-lg hover:shadow-[#1e55a8]/50"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Login
-                </NavLink>
-                <NavLink
-                  to="/register"
-                  className="block w-full bg-[#2260bf] text-white text-center py-3 px-5 rounded-md text-lg font-semibold hover:bg-[#1e55a8] transition shadow-lg hover:shadow-[#1e55a8]/50"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  Sign In
-                </NavLink>
-              </div>
-            )}
             {user && (
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center gap-2 mb-3">
                 <div className="flex items-center space-x-2">
                   <img
                     src={commentor}
@@ -366,10 +391,15 @@ const Navbar = () => {
                     {user.username || 'User'}
                   </span>
                 </div>
-                {user.role === "admin" && (
+                {user.role === 'admin' && (
                   <NavLink
                     to="/dashboard"
                     className="block w-full text-center py-2 text-green-600 hover:text-green-700 mt-2 rounded-md border border-green-200"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      window.scrollTo(0, 0);
+                    }}
+                    style={{ fontFamily: '"Luxurious Roman", serif' }}
                   >
                     Dashboard
                   </NavLink>
@@ -381,6 +411,43 @@ const Navbar = () => {
                 >
                   Logout
                 </button>
+              </div>
+            )}
+            {!user && (
+              <div className="flex flex-col gap-2 w-full">
+                <NavLink
+                  to="/subscribe"
+                  className="block w-full text-center px-5 py-2 text-lg font-bold text-white uppercase border-2 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.scrollTo(0, 0);
+                  }}
+                  style={{ fontFamily: '"Luxurious Roman", serif' }}
+                >
+                  Subscribe
+                </NavLink>
+                <NavLink
+                  to="/login"
+                  className="block w-full text-center px-5 py-2 text-lg font-bold text-white uppercase border-2 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.scrollTo(0, 0);
+                  }}
+                  style={{ fontFamily: '"Luxurious Roman", serif' }}
+                >
+                  Login
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className="block w-full text-center px-5 py-2 text-lg font-bold text-white uppercase border-2 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    window.scrollTo(0, 0);
+                  }}
+                  style={{ fontFamily: '"Luxurious Roman", serif' }}
+                >
+                  Sign In
+                </NavLink>
               </div>
             )}
           </div>
@@ -405,8 +472,11 @@ const Navbar = () => {
                               <li key={blog._id}>
                                 <NavLink
                                   to={`/blogs/${blog._id}`}
-                                  className="block py-2 text-sm hover:text-[#70c9ff]"
-                                  onClick={() => setMenuOpen(false)}
+                                  className="block py-2 text-sm hover:text-[#C4A1FF]"
+                                  onClick={() => {
+                                    setMenuOpen(false);
+                                    window.scrollTo(0, 0);
+                                  }}
                                   style={{ fontFamily: '"Luxurious Roman", serif' }}
                                 >
                                   {truncateTitle(blog.title)}
@@ -419,8 +489,11 @@ const Navbar = () => {
                           <li key={idx}>
                             <NavLink
                               to={item.path}
-                              className="block py-2 text-sm hover:text-[#70c9ff]"
-                              onClick={() => setMenuOpen(false)}
+                              className="block py-2 text-sm hover:text-[#C4A1FF]"
+                              onClick={() => {
+                                setMenuOpen(false);
+                                window.scrollTo(0, 0);
+                              }}
                               style={{ fontFamily: '"Luxurious Roman", serif' }}
                             >
                               {item.name}
@@ -433,8 +506,15 @@ const Navbar = () => {
                 ) : (
                   <NavLink
                     to={list.path}
-                    className="block py-2 text-sm hover:text-[#70c9ff]"
-                    onClick={() => setMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block py-2 text-sm hover:text-[#C4A1FF] ${
+                        isActive ? 'text-[#C4A1FF]' : ''
+                      }`
+                    }
+                    onClick={() => {
+                      setMenuOpen(false);
+                      window.scrollTo(0, 0);
+                    }}
                     style={{ fontFamily: '"Luxurious Roman", serif' }}
                   >
                     {list.name}
