@@ -1,163 +1,67 @@
-import React, { useState, useMemo } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/pagination';
-import { Pagination, Autoplay } from 'swiper/modules';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useFetchBlogsQuery } from '../../Redux/features/blogs/blogApi';
-import noImage from '../../assets/images.png';
 
 const Hero = () => {
-  const [email, setEmail] = useState('');
-  const {
-    data: blogs = [],
-    isLoading,
-    error,
-  } = useFetchBlogsQuery({ search: '', category: '' });
-
-  // Sort and get the 5 most recent blogs
-  const latestBlogs = useMemo(() => {
-    return blogs
-      .slice()
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
-  }, [blogs]);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      alert('Please enter a valid email address.');
-      return;
-    }
-    alert(`Subscribed with: ${email}`);
-    setEmail('');
-  };
-
-  const getImageSrc = (img) => {
-    if (!img) return noImage;
-    if (/^data:image|^https?:\/\//.test(img)) return img;
-    return `http://localhost:5000/${img}`;
-  };
-
   return (
-    <section className="container mx-auto py-10 px-4 flex flex-col lg:flex-row bg-white">
-      {/* === Text Section === */}
-      <article className="lg:w-1/2 flex flex-col justify-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-          Welcome to{' '}
-          <span
-            className="text-[#2260bf]"
-            style={{ fontFamily: '"Luxurious Roman", serif' }}
-          >
-            NRN
-          </span>
-          <span
-            className="text-red-500"
-            style={{ fontFamily: '"Luxurious Roman", serif' }}
-          >
-            HUB
-          </span>
-        </h1>
-
-        <p className="text-sm md:text-base text-gray-600 mt-3">
-          Welcome to my personal website. Stay updated by subscribing below!
-        </p>
-
-        {/* === Subscribe Form + Book a Call === */}
-        <form
-          onSubmit={handleSubscribe}
-          className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3"
-        >
-          <input
-            type="email"
-            placeholder="Enter your email"
-            className="w-64 px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#68bef8] focus:ring-2 focus:outline-none text-sm"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <button
-            type="submit"
-            className="bg-red-600 hover:bg-red-500 transition px-5 py-3 rounded-xl text-white text-sm shadow-md"
-          >
-            Subscribe
-          </button>
-
-          {/* Beautified Book a Call Button */}
-          <NavLink to="/bookcall">
-            <button
-              type="button"
-              className="bg-blue-600 hover:bg-blue-500 transition px-5 py-2.5 rounded-xl text-white text-sm shadow-md flex items-center gap-2"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                />
-              </svg>
-              Book a Call
-            </button>
-          </NavLink>
-        </form>
-      </article>
-
-      {/* === Carousel Section === */}
-      <article className="lg:w-1/2 mt-10 lg:mt-0">
-        {error ? (
-          <p className="text-center text-red-500">
-            Failed to load blogs. Please try again.
+    <div className="relative isolate bg-white">
+      {/* Subtle geometric background pattern instead of blur */}
+      <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden" aria-hidden="true">
+        <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#883FFF]/20 to-[#6023BB]/20 opacity-30 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]" 
+          style={{clipPath: "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"}}></div>
+      </div>
+      
+      <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:flex lg:items-center lg:gap-x-10 lg:px-8 lg:py-40">
+        <div className="mx-auto max-w-2xl lg:mx-0 lg:flex-auto">
+          <div className="flex">
+            <div className="relative flex items-center gap-x-2 rounded-full px-4 py-1 text-sm leading-6 text-gray-600 ring-1 ring-gray-900/10">
+              <span className="font-semibold text-[#883FFF]">Join our community</span>
+              <span className="h-4 w-px bg-gray-900/10" aria-hidden="true"></span>
+              <NavLink to="/about" className="flex items-center gap-x-1 font-semibold text-[#883FFF]">
+                <span>Learn more</span>
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M6.75 5.75 9.25 8l-2.5 2.25" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </NavLink>
+            </div>
+          </div>
+          
+          <h1 className="mt-10 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+            Finding Home, <span className="text-[#883FFF]">Beyond Borders</span>
+          </h1>
+          
+          <p className="mt-6 text-lg leading-8 text-gray-600">
+            NRNHUB bridges the distance, offering a digital haven where NRNs connect with their Nepali heritage and community, no matter where they are in the world.
           </p>
-        ) : isLoading ? (
-          <p className="text-center text-gray-500">Loading blogs...</p>
-        ) : latestBlogs.length === 0 ? (
-          <p className="text-center text-gray-500">No blogs available.</p>
-        ) : (
-          <Swiper
-            modules={[Pagination, Autoplay]}
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 4000, disableOnInteraction: false }}
-            slidesPerView={1}
-            className="h-full"
-          >
-            {latestBlogs.map((blog) => (
-              <SwiperSlide key={blog._id}>
-                <NavLink to={`/blogs/${blog._id}`}>
-                  <div className="relative h-[400px] sm:h-[350px] rounded-xl overflow-hidden group shadow-lg">
-                    <img
-                      src={getImageSrc(blog.coverImg)}
-                      alt={blog.title}
-                      className="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-105"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = noImage;
-                      }}
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 p-5 text-white backdrop-blur-sm">
-                      <h4 className="text-xl font-extrabold drop-shadow-md">
-                        {blog.title.length > 40
-                          ? `${blog.title.slice(0, 37)}...`
-                          : blog.title}
-                      </h4>
-                      <p className="text-sm font-bold text-[#68bef8] mt-2 drop-shadow-sm">
-                        {blog.category || 'General'}
-                      </p>
-                    </div>
-                  </div>
-                </NavLink>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        )}
-      </article>
-    </section>
+          
+          <div className="mt-10 flex items-center gap-x-6">
+            <NavLink 
+              to="/BookACall" 
+              className="rounded-full bg-[#883FFF] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[#7023EA] transition-colors  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#883FFF]"
+            >
+              Book a Call
+            </NavLink>
+            <NavLink to="/explore" className="text-base font-semibold text-gray-900 hover:text-[#883FFF] transition-colors">
+              Explore Community <span aria-hidden="true">→</span>
+            </NavLink>
+          </div>
+        </div>
+        
+        <div className="mt-16 sm:mt-20 lg:mt-0 lg:flex-shrink-0 lg:flex-grow">
+          <div className="relative mx-auto border border-[#883FFF]/10 bg-gradient-to-b from-white to-[#883FFF]/5 rounded-2xl shadow-lg p-4 lg:p-6">
+          <div>Connecting Nepalese Across World</div>
+            {/* Decorative elements */}
+            <div className="absolute -bottom-4 -right-4 h-24 w-24 rounded-full border-4 border-white bg-[#883FFF]/10 hidden sm:block"></div>
+            <div className="absolute -top-4 -left-4 h-16 w-16 rounded-full border-4 border-white bg-[#883FFF]/10 hidden sm:block"></div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Bottom geometric pattern instead of blur */}
+      <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden" aria-hidden="true">
+        <div className="relative left-[calc(50%+3rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 bg-gradient-to-tr from-[#883FFF]/20 to-[#6023BB]/20 opacity-30 sm:left-[calc(50%+36rem)] sm:w-[72.1875rem]" 
+          style={{clipPath: "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"}}></div>
+      </div>
+    </div>
   );
 };
 
