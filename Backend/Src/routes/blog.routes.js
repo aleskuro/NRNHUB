@@ -66,6 +66,25 @@ router.get('/',async (req, res) => {
     }
 } )
 
+// GET /api/blogs/category/:category - Fetch blogs by category
+router.get('/category/:category', async (req, res) => {
+    try {
+      const { category } = req.params;
+      const blogs = await Blog.find({
+        category: { $regex: `^${category}$`, $options: 'i' },
+      }).sort({ createdAt: -1 });
+  
+      if (blogs.length === 0) {
+        return res.status(404).json({ message: `No blogs found for category: ${category}` });
+      }
+  
+      res.status(200).json(blogs);
+    } catch (error) {
+      console.error(`Error fetching blogs for category ${req.params.category}:`, error);
+      res.status(500).json({ message: 'Server error while fetching category blogs' });
+    }
+  });
+
 //get single blogs by id
 router.get("/:id",   async(req, res) => {
     try {
@@ -90,28 +109,7 @@ router.get("/:id",   async(req, res) => {
     } 
 })
 
-// Get blogs by category
-router.get('/category/:category', async (req, res) => {
-    try {
-        const { category } = req.params;
-        if (!category) {
-            return res.status(400).json({ message: 'Category is required' });
-        }
 
-        const posts = await Blog.find({ category: { $regex: category, $options: 'i' } })
-            .populate('author', 'email')
-            .sort({ createdAt: -1 });
-
-        if (posts.length === 0) {
-            return res.status(404).json({ message: `No blogs found for category: ${category}` });
-        }
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error('Error Fetching Blogs by Category:', error);
-        res.status(500).json({ message: 'Error Fetching Blogs by Category' });
-    }
-});
 
 // update a post (protected route)
 router.patch('/update-post/:id', verifyToken,async (req, res) => {

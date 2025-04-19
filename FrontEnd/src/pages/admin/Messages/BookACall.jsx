@@ -16,28 +16,20 @@ const BookACall = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const { name, email, dateTime } = formData;
+    const { name, email, phone, dateTime, message } = formData;
 
     // Basic validation
-    if (!name.trim()) {
-      alert('Please enter your name.');
-      return;
-    }
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert('Please enter a valid email address.');
-      return;
-    }
-    if (!dateTime) {
-      alert('Please select a preferred date and time.');
-      return;
-    }
+    if (!name.trim()) return alert('Please enter your name.');
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return alert('Please enter a valid email address.');
+    if (!dateTime) return alert('Please select a preferred date and time.');
 
-    // Placeholder submit action
-    alert(
-      `Call booked for ${name} on ${new Date(dateTime).toLocaleString()}.\nEmail: ${email}${
-        formData.phone ? `\nPhone: ${phone}` : ''
-      }${formData.message ? `\nMessage: ${message}` : ''}`
-    );
+    // Alert with summary
+    let summary = `📅 Call booked for ${name} on ${new Date(dateTime).toLocaleString()}\n📧 Email: ${email}`;
+    if (phone) summary += `\n📞 Phone: ${phone}`;
+    if (message) summary += `\n📝 Message: ${message}`;
+
+    alert(summary);
 
     // Reset form
     setFormData({
@@ -54,12 +46,10 @@ const BookACall = () => {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center">
           Book a Call with{' '}
-          <span className="text-[#2260bf]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
-            NRN
+          <span className="text-[#883FFF]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
+            NRNHUB
           </span>
-          <span className="text-red-500" style={{ fontFamily: '"Luxurious Roman", serif' }}>
-            HUB
-          </span>
+          
         </h1>
         <p className="text-sm md:text-base text-gray-600 mt-3 text-center">
           Schedule a call to discuss your needs. Fill out the form below, and we’ll get back to you soon!
@@ -81,7 +71,7 @@ const BookACall = () => {
               value={formData.name}
               onChange={handleChange}
               placeholder="Enter your full name"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#68bef8] focus:ring-2 focus:outline-none text-sm text-gray-800"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               required
               aria-required="true"
             />
@@ -99,7 +89,7 @@ const BookACall = () => {
               value={formData.email}
               onChange={handleChange}
               placeholder="Enter your email"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#68bef8] focus:ring-2 focus:outline-none text-sm text-gray-800"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               required
               aria-required="true"
             />
@@ -117,7 +107,7 @@ const BookACall = () => {
               value={formData.phone}
               onChange={handleChange}
               placeholder="Enter your phone number (optional)"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#68bef8] focus:ring-2 focus:outline-none text-sm text-gray-800"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               pattern="[0-9+()-]*"
             />
           </div>
@@ -133,7 +123,7 @@ const BookACall = () => {
               name="dateTime"
               value={formData.dateTime}
               onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#68bef8] focus:ring-2 focus:outline-none text-sm text-gray-800"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               required
               aria-required="true"
             />
@@ -150,7 +140,7 @@ const BookACall = () => {
               value={formData.message}
               onChange={handleChange}
               placeholder="Any additional details or questions?"
-              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#68bef8] focus:ring-2 focus:outline-none text-sm text-gray-800 resize-y"
+              className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800 resize-y"
               rows="4"
             />
           </div>
@@ -159,7 +149,7 @@ const BookACall = () => {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="bg-red-600 hover:bg-red-500 transition px-6 py-3 rounded-xl text-white text-sm font-medium shadow-md flex items-center gap-2"
+              className="bg-[#883FFF] hover:bg-[#b88aff] transition px-6 py-3 rounded-xl text-white text-sm font-medium shadow-md flex items-center gap-2"
             >
               <svg
                 className="w-4 h-4"

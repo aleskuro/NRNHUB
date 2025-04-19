@@ -121,22 +121,6 @@ const Navbar = () => {
   return (
     <header className="bg-white text-black shadow sticky top-0 z-50 w-full">
       <div className="container mx-auto px-4 py-2 flex items-center relative">
-        {/* Left Section - Logo */}
-        <div className="flex flex-col items-center">
-          <NavLink to="/" className="flex flex-col items-center">
-            <h1
-              className="relative text-4xl md:text-5xl font-extrabold tracking-wider"
-              style={{ fontFamily: 'Montserrat, sans-serif' }}
-            >
-              <img
-                src={logo}
-                alt="NRNHUB Logo"
-                className="h-18 mb-6 transform transition-transform duration-300 hover:scale-105"
-              />
-            </h1>
-          </NavLink>
-        </div>
-
         {/* Middle Section - Ad Banner */}
         {navbarAdVisible && (
           <div className="flex-1 mx-4 flex justify-center items-center">
@@ -169,9 +153,9 @@ const Navbar = () => {
         )}
 
         {/* Right Section - Date and Menu Trigger */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center ml-auto gap-4">
           <div
-            className="text-sm text-gray-700 hidden md:block"
+            className="text-sm text-gray-700 hidden font-bold size- md:block"
             style={{ fontFamily: '"Luxurious Roman", serif' }}
           >
             {formatDate()}
@@ -187,16 +171,27 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Desktop Navigation */}
+      {/* Desktop Navigation with Logo on far left */}
       <nav
-        className="hidden md:flex w-full items-center px-4 transition-all duration-500 hover:bg-[length:200%_auto] hover:bg-right bg-white"
+        className="hidden md:flex w-full items-center px-35 transition-all duration-500 hover:bg-[length:200%_auto] hover:bg-right bg-white"
         style={{
           backgroundSize: '200% auto',
           backgroundPosition: 'left center',
         }}
       >
+        {/* Logo moved to far left */}
+        <div className="mr-3">
+          <NavLink to="/" className="flex items-center">
+            <img
+              src={logo}
+              alt="NRNHUB Logo"
+              className="h-12 transform transition-transform duration-300 hover:scale-105"
+            />
+          </NavLink>
+        </div>
+
         <div className="flex-1 flex justify-center">
-          <ul className="flex gap-2 mr-1 ml-65">
+          <ul className="flex gap-2">
             {Navlists.map((list, index) => (
               <li key={index} className="relative">
                 {list.dropdown ? (
@@ -297,29 +292,22 @@ const Navbar = () => {
         </div>
 
         {/* Auth Section on far right */}
-        <div className="flex items-center gap-2 pr-15">
+        <div className="flex items-center gap-2">
           {!user ? (
             <>
               <NavLink
-                to="/subscribe"
+                to="/register"
                 className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold shadow-md hover:scale-105 transition-transform"
                 onClick={() => window.scrollTo(0, 0)}
               >
-                Subscribe
-              </NavLink>
+                REGISTER 
+              </NavLink> 
               <NavLink
                 to="/login"
                 className="inline-block px-5 py-2 text-lg font-bold uppercase border-1 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
                 onClick={() => window.scrollTo(0, 0)}
               >
                 Login
-              </NavLink>
-              <NavLink
-                to="/register"
-                className="px-4 py-2 rounded-lg bg-[#883FFF] text-white font-semibold shadow-md hover:scale-105 transition-transform"
-                onClick={() => window.scrollTo(0, 0)}
-              >
-                Register
               </NavLink>
             </>
           ) : (
@@ -350,7 +338,6 @@ const Navbar = () => {
                         setDropdowns((prev) => ({ ...prev, profile: { visible: false } }));
                         window.scrollTo(0, 0);
                       }}
-                      style={{ fontFamily: '"Luxurious Roman", serif' }}
                     >
                       Dashboard
                     </NavLink>
@@ -358,7 +345,6 @@ const Navbar = () => {
                   <button
                     onClick={handleLogout}
                     className="w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
-                    style={{ fontFamily: '"Luxurious Roman", serif' }}
                   >
                     Logout
                   </button>
@@ -373,9 +359,17 @@ const Navbar = () => {
       {menuOpen && (
         <nav className="md:hidden px-4 pb-6">
           <div className="flex flex-col items-center mb-4">
+            {/* Logo in mobile navigation */}
+            <NavLink to="/" className="mb-4" onClick={() => setMenuOpen(false)}>
+              <img
+                src={logo}
+                alt="NRNHUB Logo"
+                className="h-12 transform transition-transform duration-300 hover:scale-105"
+              />
+            </NavLink>
+            
             <div
               className="text-sm text-gray-700 mb-2"
-              style={{ fontFamily: '"Luxurious Roman", serif' }}
             >
               {formatDate()}
             </div>
@@ -387,7 +381,7 @@ const Navbar = () => {
                     alt="Mobile User"
                     className="rounded-full h-8 w-8 object-cover"
                   />
-                  <span style={{ fontFamily: '"Luxurious Roman", serif' }}>
+                  <span>
                     {user.username || 'User'}
                   </span>
                 </div>
@@ -399,7 +393,6 @@ const Navbar = () => {
                       setMenuOpen(false);
                       window.scrollTo(0, 0);
                     }}
-                    style={{ fontFamily: '"Luxurious Roman", serif' }}
                   >
                     Dashboard
                   </NavLink>
@@ -407,7 +400,6 @@ const Navbar = () => {
                 <button
                   onClick={handleLogout}
                   className="block w-full text-center py-2 text-red-600 hover:bg-red-100 text-sm cursor-pointer rounded-md border border-red-200"
-                  style={{ fontFamily: '"Luxurious Roman", serif' }}
                 >
                   Logout
                 </button>
@@ -422,7 +414,6 @@ const Navbar = () => {
                     setMenuOpen(false);
                     window.scrollTo(0, 0);
                   }}
-                  style={{ fontFamily: '"Luxurious Roman", serif' }}
                 >
                   Subscribe
                 </NavLink>
@@ -433,7 +424,6 @@ const Navbar = () => {
                     setMenuOpen(false);
                     window.scrollTo(0, 0);
                   }}
-                  style={{ fontFamily: '"Luxurious Roman", serif' }}
                 >
                   Login
                 </NavLink>
@@ -444,7 +434,6 @@ const Navbar = () => {
                     setMenuOpen(false);
                     window.scrollTo(0, 0);
                   }}
-                  style={{ fontFamily: '"Luxurious Roman", serif' }}
                 >
                   Sign In
                 </NavLink>
@@ -494,7 +483,6 @@ const Navbar = () => {
                                 setMenuOpen(false);
                                 window.scrollTo(0, 0);
                               }}
-                              style={{ fontFamily: '"Luxurious Roman", serif' }}
                             >
                               {item.name}
                             </NavLink>
@@ -515,7 +503,6 @@ const Navbar = () => {
                       setMenuOpen(false);
                       window.scrollTo(0, 0);
                     }}
-                    style={{ fontFamily: '"Luxurious Roman", serif' }}
                   >
                     {list.name}
                   </NavLink>

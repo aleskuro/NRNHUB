@@ -1,5 +1,5 @@
-import React, { useState, useRef, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import SearchBlog from './SearchBlog';
 import { useFetchBlogsQuery } from '../../Redux/features/blogs/blogApi';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,6 +12,17 @@ const Blogs = () => {
   const [query, setQuery] = useState({ search: '', category: '' });
   const { data: blogs = [], error, isLoading } = useFetchBlogsQuery(query);
   const [activeTab, setActiveTab] = useState('new');
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Handle redirection from /blogs?category=travel to /category/travel
+  useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      console.log('Redirecting to /category/', categoryParam);
+      navigate(`/category/${categoryParam.toLowerCase()}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
 
   // Refs for scrolling
   const scrollRef = useRef(null);
@@ -50,7 +61,6 @@ const Blogs = () => {
     [blogs]
   );
 
-  // Format date to be more readable
   const formatDate = (dateString) => {
     if (!dateString) return 'Recently published';
     const date = new Date(dateString);
@@ -61,12 +71,8 @@ const Blogs = () => {
     });
   };
 
-  // Get random read time
-  const getReadTime = () => {
-    return Math.floor(Math.random() * 10) + 3;
-  };
+  const getReadTime = () => Math.floor(Math.random() * 10) + 3;
 
-  // Get author display name
   const getAuthorName = (author) => {
     if (!author) return 'Editor';
     if (typeof author === 'string') return author;
@@ -76,7 +82,6 @@ const Blogs = () => {
     return 'Editor';
   };
 
-  // Categories with more professional colors
   const categoryColors = {
     technology: 'bg-blue-600',
     travel: 'bg-emerald-600',
@@ -94,19 +99,16 @@ const Blogs = () => {
     return categoryColors[normalizedCategory] || 'bg-[#883FFF]';
   };
 
-  // Get all unique categories from blogs
   const allCategories = useMemo(() => {
     const categories = blogs.map((blog) => blog.category?.toLowerCase() || 'general').filter(Boolean);
     return [...new Set(categories)];
   }, [blogs]);
 
-  // Generate 3 random categories for the ad sections
   const randomCategories = useMemo(() => {
     const shuffled = [...allCategories].sort(() => 0.5 - Math.random());
     return shuffled.slice(0, 3);
   }, [allCategories]);
 
-  // Get latest blogs for a specific category
   const getLatestBlogsByCategory = (categoryName) => {
     return blogs
       .filter((blog) => (blog.category?.toLowerCase() || 'general') === categoryName.toLowerCase())
@@ -269,11 +271,11 @@ const Blogs = () => {
                     })
                     .slice(0, 6)
                     .map((blog) => (
-                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="snap-start flex-shrink-0 w-72 md:w-80">
+                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="snap-start flex-shrink-0 w-72 md:w-80" onClick={() => window.scrollTo(0, 0)}>
                         <div className="bg-white rounded-xl shadow-md overflow-hidden h-full hover:shadow-xl transition-shadow">
                           <div className="relative">
                             <img
-                              src={blog.coverImg}
+                              src={blog.coverImg || noImage}
                               alt={blog.title}
                               className="w-full h-48 object-cover"
                               onError={(e) => (e.target.src = noImage)}
@@ -328,11 +330,11 @@ const Blogs = () => {
                 {(query.search ? blogs : activeTab === 'new' ? newReleases : activeTab === 'popular' ? popular : suggestions)
                   .slice(query.search ? 0 : 0, 3)
                   .map((blog) => (
-                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                         <div className="relative">
                           <img
-                            src={blog.coverImg}
+                            src={blog.coverImg || noImage}
                             alt={blog.title}
                             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={(e) => (e.target.src = noImage)}
@@ -388,19 +390,20 @@ const Blogs = () => {
                       Latest in {randomCategories[0]}
                     </h2>
                     <Link
-                      to={`/blogs?category=${randomCategories[0]}`}
+                      to={`/category/${randomCategories[0]}`}
                       className="text-sm font-medium text-[#883FFF] hover:text-[#7623EA]"
+                      onClick={() => window.scrollTo(0, 0)}
                     >
                       View all →
                     </Link>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {getLatestBlogsByCategory(randomCategories[0]).map((blog) => (
-                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                         <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                           <div className="relative">
                             <img
-                              src={blog.coverImg}
+                              src={blog.coverImg || noImage}
                               alt={blog.title}
                               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                               onError={(e) => (e.target.src = noImage)}
@@ -434,11 +437,11 @@ const Blogs = () => {
                 {(query.search ? blogs : activeTab === 'new' ? newReleases : activeTab === 'popular' ? popular : suggestions)
                   .slice(query.search ? 3 : 3, 6)
                   .map((blog) => (
-                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                         <div className="relative">
                           <img
-                            src={blog.coverImg}
+                            src={blog.coverImg || noImage}
                             alt={blog.title}
                             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={(e) => (e.target.src = noImage)}
@@ -494,19 +497,20 @@ const Blogs = () => {
                       Latest in {randomCategories[1]}
                     </h2>
                     <Link
-                      to={`/blogs?category=${randomCategories[1]}`}
+                      to={`/category/${randomCategories[1]}`}
                       className="text-sm font-medium text-[#883FFF] hover:text-[#7623EA]"
+                      onClick={() => window.scrollTo(0, 0)}
                     >
                       View all →
                     </Link>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {getLatestBlogsByCategory(randomCategories[1]).map((blog) => (
-                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                         <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                           <div className="relative">
                             <img
-                              src={blog.coverImg}
+                              src={blog.coverImg || noImage}
                               alt={blog.title}
                               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                               onError={(e) => (e.target.src = noImage)}
@@ -540,11 +544,11 @@ const Blogs = () => {
                 {(query.search ? blogs : activeTab === 'new' ? newReleases : activeTab === 'popular' ? popular : suggestions)
                   .slice(query.search ? 6 : 6, 9)
                   .map((blog) => (
-                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                         <div className="relative">
                           <img
-                            src={blog.coverImg}
+                            src={blog.coverImg || noImage}
                             alt={blog.title}
                             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={(e) => (e.target.src = noImage)}
@@ -584,14 +588,6 @@ const Blogs = () => {
                   ))}
               </div>
 
-              {/* Third Ad Space */}
-              <div className="w-full h-56 bg-gray-100 rounded-xl overflow-hidden shadow-md flex items-center justify-center">
-                <div className="text-center p-6">
-                  <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Advertisement</div>
-                  <div className="text-gray-400 font-medium">Sponsored Content</div>
-                </div>
-              </div>
-
               {/* Third Category Section */}
               {randomCategories[2] && (
                 <div className="mb-12">
@@ -600,19 +596,20 @@ const Blogs = () => {
                       Latest in {randomCategories[2]}
                     </h2>
                     <Link
-                      to={`/blogs?category=${randomCategories[2]}`}
+                      to={`/category/${randomCategories[2]}`}
                       className="text-sm font-medium text-[#883FFF] hover:text-[#7623EA]"
+                      onClick={() => window.scrollTo(0, 0)}
                     >
                       View all →
                     </Link>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {getLatestBlogsByCategory(randomCategories[2]).map((blog) => (
-                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                      <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                         <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                           <div className="relative">
                             <img
-                              src={blog.coverImg}
+                              src={blog.coverImg || noImage}
                               alt={blog.title}
                               className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
                               onError={(e) => (e.target.src = noImage)}
@@ -646,11 +643,11 @@ const Blogs = () => {
                 {(query.search ? blogs : activeTab === 'new' ? newReleases : activeTab === 'popular' ? popular : suggestions)
                   .slice(query.search ? 9 : 9)
                   .map((blog) => (
-                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group">
+                    <Link to={`/blogs/${blog._id}`} key={blog._id} className="block group" onClick={() => window.scrollTo(0, 0)}>
                       <div className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300">
                         <div className="relative">
                           <img
-                            src={blog.coverImg}
+                            src={blog.coverImg || noImage}
                             alt={blog.title}
                             className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
                             onError={(e) => (e.target.src = noImage)}

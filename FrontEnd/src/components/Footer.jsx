@@ -32,6 +32,7 @@ const Footer = () => {
                 'Youth Empowerment',
                 'Collaborative Projects',
                 'Diaspora Dialogue',
+                'Podcast',
               ].map((item, index) => (
                 <li key={index}>
                   <a
@@ -54,6 +55,7 @@ const Footer = () => {
               { name: 'Disclaimer', path: '#' },
               { name: 'Privacy Policy', path: '#' },
               { name: 'Terms & Conditions', path: '#' },
+              { name: 'About Us', path: '#' },
             ].map((item, index) => (
               <li key={index}>
                 {item.path === '#' ? (

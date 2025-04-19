@@ -15,8 +15,14 @@ export const blogsApi = createApi({
   tagTypes: ['Blogs'],
   endpoints: (builder) => ({
     fetchBlogs: builder.query({
-      query: ({ search = '', category = '', location = '' }) =>
-        `blogs?search=${search}&category=${category}&location=${location}`,
+      query: ({ search = '', category = '', location = '' }) => {
+        const params = new URLSearchParams();
+        if (search) params.append('search', search);
+        if (category) params.append('category', category);
+        if (location) params.append('location', location);
+        console.log('Fetching blogs with params:', params.toString());
+        return `blogs?${params.toString()}`;
+      },
       providesTags: ['Blogs'],
     }),
     fetchBlogById: builder.query({
@@ -51,7 +57,11 @@ export const blogsApi = createApi({
       invalidatesTags: (result, error, id) => [{ type: 'Blogs', id }],
     }),
     fetchBlogsByCategory: builder.query({
-      query: (category) => `blogs/category/${category}`,
+      query: (category) => {
+        const url = `blogs/category/${encodeURIComponent(category)}`;
+        console.log('Fetching blogs by category:', url);
+        return url;
+      },
       providesTags: ['Blogs'],
     }),
   }),

@@ -6,7 +6,7 @@ import noImage from '/Users/user/Desktop/nnrnhub/FrontEnd/src/assets/images.png'
 // Category colors reused from Blogs for consistency
 const categoryColors = {
   technology: 'bg-blue-600',
-  travel: 'bg-emerald-600',
+  travel: 'bg-emerald-600', 
   food: 'bg-amber-600',
   health: 'bg-teal-600',
   general: 'bg-[#883FFF]',
@@ -65,7 +65,7 @@ const RelatedBlogs = () => {
 
       {/* Related Blogs Section */}
       <div className="mt-8">
-        <h3 className="text-3xl font-semibold pt-8 px-0 pb-5 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+        <h3 className="text-3xl font-semibold pt-8 px-0 pb-5 text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-[#883FFF]">
           Explore Further
         </h3>
         <hr className="border-gray-200" />
@@ -106,7 +106,7 @@ const RelatedBlogs = () => {
                   />
                 </div>
                 <div className="flex-grow">
-                  <h4 className="text-lg font-semibold text-blue-700 mb-2">
+                  <h4 className="text-lg font-semibold text-[#883FFF] mb-2">
                     {(blog.title || 'Untitled').substring(0, 70)}
                     {blog.title?.length > 70 ? '...' : ''}
                   </h4>
@@ -122,7 +122,7 @@ const RelatedBlogs = () => {
 
       {/* Things You Might Be Interested In Section */}
       <div className="mt-12">
-        <h3 className="text-3xl font-semibold pt-8 px-0 pb-5 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-600">
+        <h3 className="text-3xl font-semibold pt-8 px-0 pb-5 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-[#883FFF]">
           Things You Might Be Interested In
         </h3>
         <hr className="border-gray-200" />
@@ -163,7 +163,7 @@ const RelatedBlogs = () => {
                   />
                 </div>
                 <div className="flex-grow">
-                  <h4 className="text-lg font-semibold text-blue-700 mb-2">
+                  <h4 className="text-lg font-semibold text-[#883FFF] mb-2">
                     {(blog.title || 'Untitled').substring(0, 70)}
                     {blog.title?.length > 70 ? '...' : ''}
                   </h4>

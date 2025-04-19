@@ -19,7 +19,7 @@ import BookACall from "../src/pages/admin/Messages/BookACall";
 import Subscribers from "../src/pages/admin/Messages/Subscribers";
 // import Blogs from "../src/pages/blogs/Blogs";
 import Blogs from "../src/pages/blogs/Blogs";
-import Category from "../src/pages/minipage/Category"; // Add Category
+import Category from "../src/pages/minipage/Category"; 
 // import BookACall from "../src/pages/admin/Messages/BookACall";
 // import BookACall from "../src/pages/admin/Messages/BookACall";
 
@@ -32,8 +32,9 @@ const router = createBrowserRouter([
       { path: "social", element: <Social /> },
       { path: "blogs", element: <Blogs /> }, // Route for /blogs
       { path: "blogs/:id", element: <SingleBlogs /> },
-      { path: "blog/technology", element: <Category /> }, // Optional, if keeping separate pages
-      { path: "blog/travel", element: <Category /> }, // Optional
+      // { path: "blog/technology", element: <Category /> }, 
+      // { path: "blog/travel", element: <Category /> },
+      { path: "category/:category", element: <Category /> },
       { path: "login", element: <Login /> },
       { path: "register", element: <Register /> },
       { path: "book-call", element: <BookACall /> },

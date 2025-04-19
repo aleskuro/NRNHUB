@@ -42,12 +42,12 @@ const InterestedBlogs = () => {
               <div className="p-4">
                 <h3 className="text-md font-bold mb-1 text-gray-900">
                   {truncateTitle(blog.title)}{" "}
-                  <span className="text-sm text-red-500">({blog.category || "General"})</span>
+                  <span className="text-sm text-[#883FFF]">({blog.category || "General"})</span>
                 </h3>
                 <p className="text-sm text-gray-600 line-clamp-2">
                   {blog.description || "Explore this blog for more insights..."}
                 </p>
-                <button className="mt-3 bg-red-500 text-white px-3 py-1 rounded-full text-xs hover:bg-red-600">
+                <button className="mt-3 bg-[#883FFF] text-white px-3 py-1 rounded-full text-xs hover:bg-[#893fff9f]">
                   Read Now
                 </button>
               </div>
@@ -71,7 +71,7 @@ const SingleBlogs = () => {
 
       {blog.post && (
         <div className="flex flex-col lg:flex-row justify-between items-start md:gap-12 gap-8">
-          <div className="lg:w-2/3">
+          <div className="lg:w-2/3"> 
             <SingleBlogCards blog={blog.post} />
             <CommentsCard comments={blog.comments} />
             <InterestedBlogs/>
