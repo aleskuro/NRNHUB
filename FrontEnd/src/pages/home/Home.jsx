@@ -1,99 +1,127 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import Hero from './Hero';
-import Blogs from '../blogs/Blogs';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAdsFromServer } from '../../Redux/features/ads/adThunks';
 import noImage from '../../assets/images.png';
+import Hero from '../home/Hero';
+import Blogs from '../blogs/Blogs';
 
-const Home = () => {
+const Ad = ({ adType }) => {
   const ads = useSelector((state) => state.ads);
+  const image = ads.adImages[adType];
+  const link = ads.adLinks[adType];
+  const isVisible = ads[`${adType}AdVisible`];
+
+  // Log ad data for debugging
+  useEffect(() => {
+    console.log('Visibility flags:', {
+      mobileAdVisible: ads.mobileAdVisible,
+      right1AdVisible: ads.right1AdVisible,
+      // Add other flags as needed
+    });
+    console.log('Ad Images:', ads.adImages);
+    console.log('Ad Links:', ads.adLinks);
+  }, [ads]);
+
+  if (!isVisible || !image) {
+    return null;
+  }
+
+  // Validate image URL
+  const isValidUrl =
+    image &&
+    (image.startsWith('http://') ||
+      image.startsWith('https://') ||
+      image.startsWith('/'));
+
+  if (!isValidUrl) {
+    console.error(`Invalid image URL for ${adType}: ${image}`);
+    return null;
+  }
 
   return (
-    <div className="flex"> {/* Added a flex container to hold sidebar and main content */}
-      {/* Left Ad Box (Desktop Only) */}
-      {ads.leftAdVisible && ads.adImages.left && (
-        <div className="hidden lg:block w-48 mr-8 rounded-lg shadow-md sticky top-0 h-screen"> {/* Made it sticky and full viewport height */}
-          <a href={ads.adLinks?.left || '#'} target="_blank" rel="noopener noreferrer" className="block h-full"> {/* Added display: block and full height to the anchor */}
-            <img
-              src={ads.adImages.left}
-              alt="Left Ad"
-              className="w-full h-full object-cover"
-              style={{ backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}
-              onError={(e) => (e.target.src = noImage)}
-            />
-          </a>
-        </div>
-      )}
+    <div className="ad-container mb-4">
+      <a href={link || '#'} target="_blank" rel="noopener noreferrer">
+        <img
+          src={image}
+          alt={`${adType} Advertisement`}
+          className={`rounded shadow ${
+            adType === 'mobile'
+              ? 'w-full'
+              : adType.startsWith('left') || adType.startsWith('right')
+              ? 'w-48'
+              : 'w-full'
+          }`}
+          onError={(e) => {
+            console.error(`Failed to load image: ${image}`);
+            e.target.src = noImage;
+          }}
+        />
+      </a>
+    </div>
+  );
+};
 
-      <div className="bg-gradient-to-br from-orange-50 to-blue-100 text-gray-800 container mx-auto mt-12 p-8 rounded-xl shadow-lg flex-grow"> {/* Added flex-grow */}
-        {/* Mobile Ad Space Below Navbar (moved inside main content for stacking) */}
-        {ads.mobileAdVisible && ads.adImages.mobile && (
-          <div className="sm:hidden w-full text-center mb-8"> {/* Added mb-8 for spacing */}
-            <div className="w-full h-40">
-              <a href={ads.adLinks?.mobile || '#'} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={ads.adImages.mobile}
-                  alt="Mobile Ad"
-                  className="w-full h-full object-cover"
-                  style={{ backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}
-                  onError={(e) => (e.target.src = noImage)}
-                />
-              </a>
-            </div>
-          </div>
-        )}
+const Home = () => {
+  const dispatch = useDispatch();
+  const ads = useSelector((state) => state.ads);
+  const adsLoading = useSelector((state) => state.ads.loading);
 
-        <Hero />
-        {/* Hero Ad Space */}
-        {ads.heroAdVisible && ads.adImages.hero && (
-          <div className="w-full text-center mt-8">
-            <div className="w-full h-56">
-              <a href={ads.adLinks?.hero || '#'} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={ads.adImages.hero}
-                  alt="Hero Ad"
-                  className="w-full object-cover"
-                  style={{ backgroundRepeat: 'no-repeat', backgroundSize: 'cover', height: 'auto' }}
-                  onError={(e) => (e.target.src = noImage)}
-                />
-              </a>
-            </div>
-          </div>
-        )}
-        <hr className="my-8 border-blue-300" />
-        <Blogs />
+  // Fetch ads on mount
+  useEffect(() => {
+    dispatch(fetchAdsFromServer());
+  }, [dispatch]);
 
-        {/* Bottom Ad Space (moved inside main content) */}
-        {ads.bottomAdVisible && ads.adImages.bottom && (
-          <div className="w-full text-center mt-8">
-            <div className="w-full h-56">
-              <a href={ads.adLinks?.bottom || '#'} target="_blank" rel="noopener noreferrer">
-                <img
-                  src={ads.adImages.bottom}
-                  alt="Bottom Ad"
-                  className="w-full object-cover"
-                  style={{ backgroundRepeat: 'no-repeat', backgroundSize: 'cover', height: 'auto' }}
-                  onError={(e) => (e.target.src = noImage)}
-                />
-              </a>
-            </div>
-          </div>
-        )}
+  // Debug logging
+  useEffect(() => {
+    if (!adsLoading) {
+      console.log('Current ads state:', ads);
+      console.log('left1AdVisible:', ads.left1AdVisible);
+      console.log('left1 image:', ads.adImages?.left1);
+    }
+  }, [ads, adsLoading]);
+
+  if (adsLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-xl font-medium">Loading content...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex">
+      {/* Left Ad Boxes (Desktop Only) */}
+      <div className="hidden lg:flex flex-col w-48 mr-8 space-y-4 sticky top-0">
+        {['left1', 'left2', 'left3', 'left4', 'left5'].map((adType) => (
+          <Ad key={adType} adType={adType} />
+        ))}
       </div>
 
-      {/* Right Ad Box (Desktop Only) */}
-      {ads.rightAdVisible && ads.adImages.right && (
-        <div className="hidden lg:block w-48 ml-8 rounded-lg shadow-md sticky top-0 h-screen"> {/* Made it sticky and full viewport height */}
-          <a href={ads.adLinks?.right || '#'} target="_blank" rel="noopener noreferrer" className="block h-full"> {/* Added display: block and full height to the anchor */}
-            <img
-              src={ads.adImages.right}
-              alt="Right Ad"
-              className="w-full h-full object-cover"
-              style={{ backgroundRepeat: 'no-repeat', backgroundSize: 'cover' }}
-              onError={(e) => (e.target.src = noImage)}
-            />
-          </a>
+      <div className="bg-gradient-to-br from-orange-50 to-blue-100 text-gray-800 container mx-auto mt-12 p-8 rounded-xl shadow-lg flex-grow">
+        {/* Mobile Ad Space Below Navbar */}
+        <div className="md:hidden">
+          <Ad adType="mobile" />
         </div>
-      )}
+
+        <Hero />
+
+        {/* Hero Ad Space */}
+        <Ad adType="hero" />
+
+        <hr className="my-8 border-blue-300" />
+
+        <Blogs />
+
+        {/* Bottom Ad Space */}
+        <Ad adType="bottom" />
+      </div>
+
+      {/* Right Ad Boxes (Desktop Only) */}
+      <div className="hidden lg:flex flex-col w-48 ml-8 space-y-4 sticky top-0">
+        {['right1', 'right2', 'right3', 'right4', 'right5'].map((adType) => (
+          <Ad key={adType} adType={adType} />
+        ))}
+      </div>
     </div>
   );
 };

@@ -123,19 +123,19 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-2 flex items-center relative">
         {/* Middle Section - Ad Banner */}
         {navbarAdVisible && (
-          <div className="flex-1 mx-4 flex justify-center items-center">
+          <div className="w-240 flex justify-center items-center ml-85 md:px-14">
             {adImages.navbar ? (
               <a
                 href={adLinks.navbar || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block rounded-lg shadow-md text-center"
+                className="block w-full"
                 onClick={() => console.log('Navbar ad clicked:', adLinks.navbar)}
               >
                 <img
                   src={adImages.navbar}
                   alt="Navbar Ad"
-                  className="max-w-[1152px] h-16 md:h-40 object-cover rounded-lg"
+                  className="w-full h-20 md:h-40 object-cover rounded-lg shadow"
                   onError={(e) => {
                     console.error(`Failed to load navbar ad image: ${adImages.navbar}`);
                     e.target.src = noImage;
@@ -143,7 +143,7 @@ const Navbar = () => {
                 />
               </a>
             ) : (
-              <div className="bg-gray-100 p-3 rounded-lg shadow-md text-center">
+              <div className="w-full bg-gray-100 p-3 rounded-lg shadow-md text-center">
                 <p className="text-gray-600 font-semibold text-sm">
                   Navbar Ad Placeholder - Upload an image in Manage Ads
                 </p>
@@ -171,7 +171,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Desktop Navigation with Logo on far left */}
+      {/* Desktop Navigation with Logo and Title on far left */}
       <nav
         className="hidden md:flex w-full items-center px-35 transition-all duration-500 hover:bg-[length:200%_auto] hover:bg-right bg-white"
         style={{
@@ -179,14 +179,20 @@ const Navbar = () => {
           backgroundPosition: 'left center',
         }}
       >
-        {/* Logo moved to far left */}
+        {/* Logo and Title moved to far left */}
         <div className="mr-3">
-          <NavLink to="/" className="flex items-center">
+          <NavLink to="/" className="flex items-center gap-2">
             <img
               src={logo}
               alt="NRNHUB Logo"
               className="h-12 transform transition-transform duration-300 hover:scale-105"
             />
+            <span
+              className="text-3xl font-bold text-black hover:text-[#C4A1FF] transition-colors duration-300"
+              style={{ fontFamily: '"Baumans", sans-serif' }}
+            >
+              NRNHUB
+            </span>
           </NavLink>
         </div>
 
@@ -300,8 +306,8 @@ const Navbar = () => {
                 className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold shadow-md hover:scale-105 transition-transform"
                 onClick={() => window.scrollTo(0, 0)}
               >
-                REGISTER 
-              </NavLink> 
+                REGISTER
+              </NavLink>
               <NavLink
                 to="/login"
                 className="inline-block px-5 py-2 text-lg font-bold uppercase border-1 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
@@ -359,20 +365,22 @@ const Navbar = () => {
       {menuOpen && (
         <nav className="md:hidden px-4 pb-6">
           <div className="flex flex-col items-center mb-4">
-            {/* Logo in mobile navigation */}
-            <NavLink to="/" className="mb-4" onClick={() => setMenuOpen(false)}>
+            {/* Logo and Title in mobile navigation */}
+            <NavLink to="/" className="mb-4 flex items-center gap-2" onClick={() => setMenuOpen(false)}>
               <img
                 src={logo}
                 alt="NRNHUB Logo"
                 className="h-12 transform transition-transform duration-300 hover:scale-105"
               />
+              <span
+                className="text-xl font-bold text-black hover:text-[#C4A1FF] transition-colors duration-300"
+                style={{ fontFamily: '"Baumans", sans-serif' }}
+              >
+                NRNHUB
+              </span>
             </NavLink>
-            
-            <div
-              className="text-sm text-gray-700 mb-2"
-            >
-              {formatDate()}
-            </div>
+
+            <div className="text-sm text-gray-700 mb-2">{formatDate()}</div>
             {user && (
               <div className="flex flex-col items-center gap-2 mb-3">
                 <div className="flex items-center space-x-2">
@@ -381,9 +389,7 @@ const Navbar = () => {
                     alt="Mobile User"
                     className="rounded-full h-8 w-8 object-cover"
                   />
-                  <span>
-                    {user.username || 'User'}
-                  </span>
+                  <span>{user.username || 'User'}</span>
                 </div>
                 {user.role === 'admin' && (
                   <NavLink

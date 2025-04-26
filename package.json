@@ -1,5 +1,15 @@
 {
   "dependencies": {
+    "@editorjs/delimiter": "^1.4.2",
+    "@editorjs/embed": "^2.7.6",
+    "@editorjs/inline-code": "^1.5.1",
+    "@editorjs/link": "^2.6.2",
+    "@editorjs/marker": "^1.4.0",
+    "@editorjs/table": "^2.4.4",
+    "@editorjs/underline": "^1.2.1",
+    "date-fns": "^4.1.0",
+    "editorjs-inline-font-family-tool": "^1.0.4",
+    "editorjs-text-color-plugin": "^2.0.4",
     "react-toastify": "^11.0.5"
   }
 }

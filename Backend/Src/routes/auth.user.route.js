@@ -42,52 +42,63 @@ router.post('/register', async (req, res) => {
 // Login user
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-
-        if (!user) {
-            return res.status(404).send({ message: 'User not found' });
-        }
-        const isMatch = await user.comparePassword(password);
-        if (!isMatch) {
-            return res.status(401).send({ message: 'Invalid credentials' });
-        }
-
-        const token = await generateToken(user._id);
-        console.log('Generated Token:', token); // Debug
-        console.log('NODE_ENV:', process.env.NODE_ENV); // Debug environment
-        console.log('Cookie Options:', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 24 * 60 * 60 * 1000,
-        }); // Debug options
-
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000
-        });
-
-        console.log('Cookie set in response'); // Debug
-
-        res.status(200).send({
-            message: 'Logged in successfully',
-            token,
-            user: {
-                _id: user._id,
-                email: user.email,
-                username: user.username,
-                role: user.role,
-            },
-        });
+      const { email, password } = req.body;
+      const user = await User.findOne({ email });
+  
+      if (!user) {
+        return res.status(404).send({ message: 'User not found' });
+      }
+  
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return res.status(401).send({ message: 'Invalid credentials' });
+      }
+  
+      // Generate token
+      const token = await generateToken(user._id);
+  
+      // Capture IP address and user agent
+      const ipAddress = req.ip || req.connection.remoteAddress;
+      const userAgent = req.headers['user-agent'] || 'Unknown';
+  
+      // Update user's login history and last online timestamp
+      await User.findByIdAndUpdate(user._id, {
+        $set: { lastOnline: new Date() },
+        $push: {
+          loginHistory: {
+            timestamp: new Date(),
+            ipAddress,
+            userAgent,
+          },
+        },
+      });
+  
+      // Set cookie with token
+      res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+  
+      console.log('Cookie set in response');
+  
+      res.status(200).send({
+        message: 'Logged in successfully',
+        token,
+        user: {
+          _id: user._id,
+          email: user.email,
+          username: user.username,
+          role: user.role,
+        },
+      });
     } catch (error) {
-        console.error('Error logging in:', error);
-        res.status(500).send({ message: 'Login failed' });
+      console.error('Error logging in:', error);
+      res.status(500).send({ message: 'Login failed' });
     }
-});
-
+  });
+  
 // Logout user
 router.post('/logout', async (req, res) => {
     try {
@@ -143,6 +154,56 @@ router.put('/users/:id', async (req, res) => {
         console.error('Error updating user role:', error);
         res.status(500).send({ message: 'Failed to update user role' });
     }
+});
+
+// Get user login tracking data
+router.get('/login-tracking', async (req, res) => {
+  try {
+    // Fetch users with relevant fields
+    const users = await User.find(
+      {},
+      'username email lastOnline loginHistory role'
+    ).lean();
+
+    // Format the response with safe data handling
+    const trackingData = users.map((user) => {
+      // Ensure lastOnline is a valid date or null
+      const lastOnline = user.lastOnline ? new Date(user.lastOnline) : null;
+      // Ensure loginHistory is an array
+      const loginHistory = Array.isArray(user.loginHistory)
+        ? user.loginHistory.map((entry) => ({
+            timestamp: entry.timestamp
+              ? new Date(entry.timestamp).toISOString()
+              : null,
+            ipAddress: entry.ipAddress || 'Unknown',
+            userAgent: entry.userAgent || 'Unknown',
+          }))
+        : [];
+
+      return {
+        _id: user._id?.toString() || null,
+        username: user.username || 'Unknown',
+        email: user.email || 'Unknown',
+        role: user.role || 'user',
+        lastOnline: lastOnline ? lastOnline.toISOString() : null,
+        loginHistory,
+        isOnline: lastOnline
+          ? Date.now() - lastOnline.getTime() < 15 * 60 * 1000 // Online if active within 15 minutes
+          : false,
+      };
+    });
+
+    res.status(200).json({
+      message: 'Login tracking data retrieved successfully',
+      users: trackingData || [],
+    });
+  } catch (error) {
+    console.error('Error fetching login tracking data:', error);
+    res.status(500).json({
+      message: 'Failed to fetch login tracking data',
+      error: error.message,
+    });
+  }
 });
 
 module.exports = router;

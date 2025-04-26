@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { useFetchBlogsByCategoryQuery, useFetchBlogsQuery } from '../../Redux/features/blogs/blogApi';
 import noImage from '../../assets/images.png';
 import { Clock, BookOpen } from 'lucide-react';
-import {Helmet} from 'react-helmet';
-
-
+import { Helmet } from 'react-helmet';
 
 const Category = () => {
   const { category } = useParams();
@@ -28,11 +27,14 @@ const Category = () => {
     category: '',
   });
 
+  // Access ad state from Redux
+  const ads = useSelector((state) => state.ads);
+
   const [featuredBlogs, setFeaturedBlogs] = useState([]);
   const [remainingBlogs, setRemainingBlogs] = useState([]);
   const [suggestedBlogs, setSuggestedBlogs] = useState([]);
 
-  // Debug logs
+  // Debug logs for blogs
   useEffect(() => {
     console.log('--- Category Debug Start ---');
     console.log('Category Param:', category);
@@ -51,7 +53,7 @@ const Category = () => {
     }
 
     refetch();
-  }, [normalizedCategory, error, isLoading, isError, allBlogs, refetch]); // Removed 'blogs' from dependencies
+  }, [normalizedCategory, error, isLoading, isError, allBlogs, refetch]);
 
   // Process blogs
   useEffect(() => {
@@ -76,6 +78,109 @@ const Category = () => {
       setSuggestedBlogs([]);
     }
   }, [blogs, allBlogs, normalizedCategory]);
+
+  // Render ad space component
+  const renderAdSpace = (adType, positionLabel) => {
+    const isAdVisible = ads[`${adType}AdVisible`];
+    const adImage = ads.adImages[adType];
+    const adLink = ads.adLinks[adType];
+
+    // Debug logging
+    useEffect(() => {
+      console.log(`Ad data for ${adType}:`, {
+        isAdVisible,
+        adImage,
+        adLink,
+      });
+      console.log('Visibility flags:', {
+        blogsFirstAdVisible: ads.blogsFirstAdVisible,
+        blogsSecondAdVisible: ads.blogsSecondAdVisible,
+      });
+      console.log('Ad Images:', ads.adImages);
+      console.log('Ad Links:', ads.adLinks);
+    }, [isAdVisible, adImage, adLink]);
+
+    // If ad is not visible, return null to hide it completely
+    if (!isAdVisible) {
+      return null;
+    }
+
+    // If ad is visible but no image is set, show enhanced placeholder
+    if (!adImage) {
+      return (
+        <div className="w-full bg-gray-100 rounded-xl overflow-hidden shadow-md flex items-center justify-center py-8">
+          <div className="text-center p-6">
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Advertisement</div>
+            <div className="text-gray-700 font-semibold text-lg">{positionLabel} Ad Placement</div>
+            <div className="text-gray-500 text-sm mt-2">Advertise with NRNHUB</div>
+            <a
+              href="https://nrnhub.com/advertise"
+              className="mt-4 inline-block text-[#883FFF] hover:text-[#7623EA] text-sm font-medium"
+            >
+              Learn More →
+            </a>
+          </div>
+        </div>
+      );
+    }
+
+    // Validate image URL
+    const isValidUrl =
+      adImage &&
+      (adImage.startsWith('http://') ||
+        adImage.startsWith('https://') ||
+        adImage.startsWith('/'));
+
+    if (!isValidUrl) {
+      console.error(`Invalid image URL for ${adType}: ${adImage}`);
+      return null;
+    }
+
+    // Handle ad click for analytics
+    const handleAdClick = () => {
+      console.log(`Ad clicked: ${adType}, Link: ${adLink}`);
+      // Add analytics (e.g., Google Analytics)
+      // window.gtag('event', 'ad_click', { ad_type: adType, ad_link: adLink });
+    };
+
+    // Render ad with responsive dimensions
+    return (
+      <div className="w-full rounded-xl overflow-hidden shadow-md">
+        {adLink ? (
+          <a
+            href={adLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={handleAdClick}
+          >
+            <img
+              src={adImage}
+              alt={`${positionLabel} Ad`}
+              className="w-full h-auto max-w-[1152px] mx-auto rounded-xl object-contain"
+              style={{ maxWidth: '100%' }}
+              loading="lazy"
+              onError={(e) => {
+                console.error(`Failed to load ad image: ${adImage}`);
+                e.target.src = noImage;
+              }}
+            />
+          </a>
+        ) : (
+          <img
+            src={adImage}
+            alt={`${positionLabel} Ad`}
+            className="w-full h-auto max-w-[1152px] mx-auto rounded-xl object-contain"
+            style={{ maxWidth: '100%' }}
+            loading="lazy"
+            onError={(e) => {
+              console.error(`Failed to load ad image: ${adImage}`);
+              e.target.src = noImage;
+            }}
+          />
+        )}
+      </div>
+    );
+  };
 
   // Utility functions
   const truncateTitle = (title, maxLength = 45) => {
@@ -306,21 +411,8 @@ const Category = () => {
 
         {/* Ad Space */}
         <div className="my-12 grid grid-cols-1 md:grid-cols-2 gap-4">
-          {[1, 2].map((adNum) => (
-            <div
-              key={`ad-${adNum}`}
-              className="w-full bg-gradient-to-r from-gray-100 to-gray-200 p-4 text-center rounded-lg shadow-md h-32 flex items-center justify-center"
-            >
-              <div className="text-center">
-                <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">
-                  Advertisement
-                </div>
-                <div className="text-gray-400 font-medium">
-                  Premium Ad Placement {adNum}
-                </div>
-              </div>
-            </div>
-          ))}
+          {renderAdSpace('blogsFirst', 'First')}
+          {renderAdSpace('blogsSecond', 'Second')}
         </div>
 
         {/* More Articles */}
@@ -414,4 +506,3 @@ const Category = () => {
 };
 
 export default Category;
-

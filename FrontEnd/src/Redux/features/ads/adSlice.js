@@ -1,53 +1,16 @@
 import { createSlice } from '@reduxjs/toolkit';
+import { fetchAdsFromServer, submitAds } from './adThunks';
 
-// Load from localStorage
-const loadFromLocalStorage = () => {
-  try {
-    const serializedState = localStorage.getItem('adsState');
-    if (serializedState === null) return undefined;
-    const state = JSON.parse(serializedState);
-    // Ensure adLinks exists
-    if (!state.adLinks) {
-      state.adLinks = { mobile: '', right: '', left: '', bottom: '', navbar: '' };
-    }
-    return state;
-  } catch (err) {
-    console.error('Failed to load ads state:', err);
-    return undefined;
-  }
-};
-
-const defaultState = {
-  mobileAdVisible: false,
-  rightAdVisible: false,
-  leftAdVisible: false,
-  bottomAdVisible: false,
-  navbarAdVisible: false,
-  adImages: {
-    mobile: null,
-    right: null,
-    left: null,
-    bottom: null,
-    navbar: null,
-  },
-  adLinks: {
-    mobile: '',
-    right: '',
-    left: '',
-    bottom: '',
-    navbar: '',
-  },
-};
-
-const initialState = loadFromLocalStorage() || defaultState;
-
-const saveToLocalStorage = (state) => {
-  try {
-    const serializedState = JSON.stringify(state);
-    localStorage.setItem('adsState', serializedState);
-  } catch (err) {
-    console.error('Failed to save ads state:', err);
-  }
+// Initial state
+const initialState = {
+  adImages: {},
+  adLinks: {},
+  visibility: {},
+  visibilityLoaded: false,
+  loading: true,
+  submitting: false,
+  error: null,
+  submitSuccess: false,
 };
 
 const adSlice = createSlice({
@@ -56,22 +19,143 @@ const adSlice = createSlice({
   reducers: {
     toggleAd: (state, action) => {
       const { ad } = action.payload;
-      state[`${ad}AdVisible`] = !state[`${ad}AdVisible`];
-      saveToLocalStorage(state);
+      const newVisibility = !state.visibility[ad] ?? true;
+      state.visibility = {
+        ...state.visibility,
+        [ad]: newVisibility,
+      };
+      state[`${ad}AdVisible`] = newVisibility;
     },
     setAdImage: (state, action) => {
       const { ad, imagePath } = action.payload;
+      console.log(`Setting image for ${ad}: ${imagePath}`);
       state.adImages[ad] = imagePath;
-      saveToLocalStorage(state);
     },
     setAdLink: (state, action) => {
       const { ad, link } = action.payload;
+      console.log(`Set ad link for ${ad}: ${link}`);
       state.adLinks = state.adLinks || {};
       state.adLinks[ad] = link;
-      saveToLocalStorage(state);
     },
+    clearAd: (state, action) => {
+      const { ad } = action.payload;
+      console.log(`Clearing ad ${ad}`);
+      delete state.adImages[ad];
+      delete state.adLinks[ad];
+      delete state.visibility[ad];
+      delete state[`${ad}AdVisible`];
+    },
+    resetSubmitStatus: (state) => {
+      state.submitSuccess = false;
+      state.error = null;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAdsFromServer.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdsFromServer.fulfilled, (state, action) => {
+        const payload = action.payload || {};
+        const validAdTypes = [
+          'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
+          'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
+          'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
+          'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3'
+        ];
+
+        // Sanitize state
+        const adImages = {};
+        const adLinks = {};
+        const visibility = {};
+
+        Object.keys(payload.adImages || {}).forEach(key => {
+          if (validAdTypes.includes(key)) {
+            adImages[key] = payload.adImages[key];
+          }
+        });
+        Object.keys(payload.adLinks || {}).forEach(key => {
+          if (validAdTypes.includes(key)) {
+            adLinks[key] = payload.adLinks[key];
+          }
+        });
+        Object.keys(payload.visibility || {}).forEach(key => {
+          if (validAdTypes.includes(key)) {
+            visibility[key] = payload.visibility[key];
+          }
+        });
+
+        state.adImages = adImages;
+        state.adLinks = adLinks;
+        state.visibility = visibility;
+        
+        Object.keys(state.visibility).forEach(adType => {
+          state[`${adType}AdVisible`] = state.visibility[adType];
+        });
+        
+        state.visibilityLoaded = true;
+        state.loading = false;
+      })
+      .addCase(fetchAdsFromServer.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || 'An error occurred while fetching ads';
+        state.visibilityLoaded = false;
+      })
+      .addCase(submitAds.pending, (state) => {
+        state.submitting = true;
+        state.submitSuccess = false;
+        state.error = null;
+      })
+      .addCase(submitAds.fulfilled, (state, action) => {
+        const payload = action.payload || {};
+        const validAdTypes = [
+          'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
+          'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
+          'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
+          'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3'
+        ];
+
+        // Sanitize state
+        const adImages = {};
+        const adLinks = {};
+        const visibility = {};
+
+        Object.keys(payload.adImages || {}).forEach(key => {
+          if (validAdTypes.includes(key)) {
+            adImages[key] = payload.adImages[key];
+          }
+        });
+        Object.keys(payload.adLinks || {}).forEach(key => {
+          if (validAdTypes.includes(key)) {
+            adLinks[key] = payload.adLinks[key];
+          }
+        });
+        Object.keys(payload.visibility || {}).forEach(key => {
+          if (validAdTypes.includes(key)) {
+            visibility[key] = payload.visibility[key];
+          }
+        });
+
+        state.adImages = adImages;
+        state.adLinks = adLinks;
+        state.visibility = visibility;
+        
+        Object.keys(state.visibility).forEach(adType => {
+          state[`${adType}AdVisible`] = state.visibility[adType];
+        });
+        
+        state.visibilityLoaded = true;
+        state.submitting = false;
+        state.submitSuccess = true;
+      })
+      .addCase(submitAds.rejected, (state, action) => {
+        state.submitting = false;
+        state.error = action.payload || 'An error occurred while submitting ads';
+        state.visibilityLoaded = false;
+      });
   },
 });
 
-export const { toggleAd, setAdImage, setAdLink } = adSlice.actions;
+export const { toggleAd, setAdImage, setAdLink, clearAd, resetSubmitStatus } = adSlice.actions;
 export default adSlice.reducer;
