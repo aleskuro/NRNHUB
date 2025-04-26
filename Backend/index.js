@@ -1,6 +1,5 @@
 const express = require('express');
 const app = express();
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 require('dotenv').config();
@@ -22,7 +21,7 @@ const coverRoutes = require('./Src/routes/coverRoutes');
 const callRoutes = require('./Src/routes/call.routes');
 const analyticsRoutes = require('./Src/routes/analyticsRoutes');
 
-const port = process.env.PORT || 5000;
+const port = process.env排放PORT || 5000;
 
 // Middleware
 app.use(express.json());
@@ -30,23 +29,10 @@ app.use(cookieParser());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
-// CORS configuration (optional, can be removed if frontend and backend share same origin)
-// const allowedOrigins = process.env.ALLOWED_ORIGINS
-//   ? process.env.ALLOWED_ORIGINS.split(',')
-//   : ['http://localhost:5173', 'http://localhost:3000'];
-
-// app.use(
-//   cors({
-//     origin: true,
-//     credentials: true,
-//     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-//   })
-// );
-
 // Ensure uploads directory exists
 const uploadsPath = path.join(__dirname, 'Src', 'Uploads');
 if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, { recursive: true });
+  fs.mkdirSync(UploadsPath, { recursive: true });
   console.log(`Created directory: ${uploadsPath}`);
 }
 
@@ -54,8 +40,8 @@ if (!fs.existsSync(uploadsPath)) {
 app.use('/Uploads', express.static(uploadsPath));
 console.log(`Serving /Uploads from: ${uploadsPath}`);
 
-// NEW: Serve React frontend static files
-const frontendPath = path.join(__dirname, 'frontend', 'dist'); // Adjust path based on your frontend build folder
+// Serve React frontend static files
+const frontendPath = path.join(__dirname, 'frontend', 'dist');
 app.use(express.static(frontendPath));
 console.log(`Serving frontend from: ${frontendPath}`);
 
@@ -74,7 +60,7 @@ app.use('/api/ads', adsRoutes);
 app.use('/api/calls', callRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
-// NEW: Catch-all route for React client-side routing
+// Catch-all route for React client-side routing
 app.get('*', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
@@ -106,14 +92,6 @@ process.on('SIGINT', async () => {
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!', error: err.message });
-});
-
-if (process.env.Node_ENV === 'production'){
-  app.use(express.static(path.join(__dirname, '/frontend/dist')))
-}
-
-app.get("*", (req,res) => {
-  res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
 });
 
 // Start server

@@ -1,11 +1,4 @@
 {
-  "scripts": {
-    "start": "NODE_ENV =development node backend/index.js",
-    "start:dev": "nodemon backend/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
-    
-  },
   "dependencies": {
     "@editorjs/delimiter": "^1.4.2",
     "@editorjs/embed": "^2.7.6",
