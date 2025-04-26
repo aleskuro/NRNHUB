@@ -1,4 +1,11 @@
 {
+  "scripts": {
+    "start": "NODE_ENV =development node backend/index.js",
+    "start:dev": "nodemon backend/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+    
+  },
   "dependencies": {
     "@editorjs/delimiter": "^1.4.2",
     "@editorjs/embed": "^2.7.6",
@@ -8,8 +15,11 @@
     "@editorjs/table": "^2.4.4",
     "@editorjs/underline": "^1.2.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.5.0",
     "editorjs-inline-font-family-tool": "^1.0.4",
     "editorjs-text-color-plugin": "^2.0.4",
+    "express": "^5.1.0",
+    "mongoose": "^8.14.0",
     "react-toastify": "^11.0.5"
   }
 }
