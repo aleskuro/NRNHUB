@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 
-
 const Register = () => {
-  
-  
   const [formData, setFormData] = useState({
     email: '',
     username: '',
     password: '',
     confirmPassword: '',
     birthdate: '',
+    day: '',
+    month: '',
+    year: '',
     gender: '',
   });
   const [message, setMessage] = useState('');
@@ -21,9 +21,11 @@ const Register = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const handleResize = () => {
     setWindowSize({ width: window.innerWidth, height: window.innerHeight });
+    setIsMobile(window.innerWidth < 768);
   };
 
   useEffect(() => {
@@ -31,12 +33,45 @@ const Register = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Effect to synchronize the individual date fields with the birthdate field
+  useEffect(() => {
+    const { day, month, year } = formData;
+    if (day && month && year) {
+      // Create padded values for day and month (e.g., '01' instead of '1')
+      const paddedDay = day.padStart(2, '0');
+      const paddedMonth = month.padStart(2, '0');
+      setFormData(prev => ({ ...prev, birthdate: `${year}-${paddedMonth}-${paddedDay}` }));
+    }
+  }, [formData.day, formData.month, formData.year]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
     // Prevent spaces in username
     if (name === 'username') {
       setFormData({ ...formData, [name]: value.replace(/\s/g, '') });
-    } else {
+    } 
+    // Handle date selections
+    else if (['day', 'month', 'year'].includes(name)) {
+      setFormData({ ...formData, [name]: value });
+    }
+    // Handle direct date input (for desktop)
+    else if (name === 'birthdate') {
+      const dateObj = new Date(value);
+      if (!isNaN(dateObj.getTime())) {
+        setFormData({ 
+          ...formData, 
+          birthdate: value,
+          day: String(dateObj.getDate()).padStart(2, '0'),
+          month: String(dateObj.getMonth() + 1).padStart(2, '0'),
+          year: String(dateObj.getFullYear())
+        });
+      } else {
+        setFormData({ ...formData, [name]: value });
+      }
+    } 
+    // Handle all other fields
+    else {
       setFormData({ ...formData, [name]: value });
     }
   };
@@ -50,6 +85,12 @@ const Register = () => {
     }
     if (formData.password !== formData.confirmPassword) {
       setMessage('Passwords do not match');
+      return;
+    }
+
+    // Validate birthdate
+    if (!formData.birthdate) {
+      setMessage('Please provide a complete birthdate');
       return;
     }
 
@@ -81,8 +122,27 @@ const Register = () => {
     }
   };
 
+  // Generate arrays for days, months, and years
+  const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
+  const months = [
+    { value: '01', label: 'January' },
+    { value: '02', label: 'February' },
+    { value: '03', label: 'March' },
+    { value: '04', label: 'April' },
+    { value: '05', label: 'May' },
+    { value: '06', label: 'June' },
+    { value: '07', label: 'July' },
+    { value: '08', label: 'August' },
+    { value: '09', label: 'September' },
+    { value: '10', label: 'October' },
+    { value: '11', label: 'November' },
+    { value: '12', label: 'December' },
+  ];
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 relative overflow -hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 relative overflow-hidden">
       {isRegistered && <Confetti width={windowSize.width} height={windowSize.height} />}
       {/* Wavy Background */}
       <svg
@@ -174,20 +234,88 @@ const Register = () => {
               required
             />
           </div>
-          {/* Birthdate */}
+          
+          {/* Birthdate - Responsive approach */}
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="birthdate">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
               Birthdate
             </label>
-            <input
-              type="date"
-              name="birthdate"
-              value={formData.birthdate}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
-              onChange={handleChange}
-              required
+            
+            {!isMobile && (
+              // Desktop view - Standard date input
+              <input
+                type="date"
+                name="birthdate"
+                value={formData.birthdate}
+                className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
+                onChange={handleChange}
+                required
+              />
+            )}
+            
+            {isMobile && (
+              // Mobile view - Dropdown selectors
+              <div className="flex space-x-2">
+                {/* Month dropdown */}
+                <div className="flex-1">
+                  <select
+                    name="month"
+                    value={formData.month}
+                    className="w-full bg-gray-100 focus:outline-none px-2 py-3 rounded-md border border-gray-300"
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>Month</option>
+                    {months.map(month => (
+                      <option key={month.value} value={month.value}>
+                        {month.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Day dropdown */}
+                <div className="w-24">
+                  <select
+                    name="day"
+                    value={formData.day}
+                    className="w-full bg-gray-100 focus:outline-none px-2 py-3 rounded-md border border-gray-300"
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>Day</option>
+                    {days.map(day => (
+                      <option key={day} value={day}>{day}</option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Year dropdown */}
+                <div className="w-28">
+                  <select
+                    name="year"
+                    value={formData.year}
+                    className="w-full bg-gray-100 focus:outline-none px-2 py-3 rounded-md border border-gray-300"
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>Year</option>
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+            
+            {/* Hidden input to maintain compatibility with form submission */}
+            <input 
+              type="hidden" 
+              name="birthdate" 
+              value={formData.birthdate} 
             />
           </div>
+          
           {/* Gender */}
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="gender">
