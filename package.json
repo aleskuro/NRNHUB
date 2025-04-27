@@ -1,18 +1,28 @@
 {
+  "name": "nrn",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=production node index.js",
+    "start:dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@editorjs/delimiter": "^1.4.2",
-    "@editorjs/embed": "^2.7.6",
-    "@editorjs/inline-code": "^1.5.1",
-    "@editorjs/link": "^2.6.2",
-    "@editorjs/marker": "^1.4.0",
-    "@editorjs/table": "^2.4.4",
-    "@editorjs/underline": "^1.2.1",
-    "date-fns": "^4.1.0",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^2.2.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "editorjs-inline-font-family-tool": "^1.0.4",
-    "editorjs-text-color-plugin": "^2.0.4",
-    "express": "^5.1.0",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.14.2",
     "mongoose": "^8.14.0",
-    "react-toastify": "^11.0.5"
+    "multer": "^1.4.5-lts.2",
+    "nodemon": "^3.1.9"
   }
 }

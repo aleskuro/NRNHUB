@@ -21,7 +21,7 @@ const coverRoutes = require('./Src/routes/coverRoutes');
 const callRoutes = require('./Src/routes/call.routes');
 const analyticsRoutes = require('./Src/routes/analyticsRoutes');
 
-const port = process.env排放PORT || 5000;
+const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
