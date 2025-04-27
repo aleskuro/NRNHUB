@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 
 const BookACall = () => {
   const [formData, setFormData] = useState({
@@ -8,37 +9,64 @@ const BookACall = () => {
     dateTime: '',
     message: '',
   });
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const { name, email, phone, dateTime, message } = formData;
+    const { name, email, dateTime } = formData;
 
     // Basic validation
-    if (!name.trim()) return alert('Please enter your name.');
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      return alert('Please enter a valid email address.');
-    if (!dateTime) return alert('Please select a preferred date and time.');
+    if (!name.trim()) {
+      toast.error('Please enter your name.');
+      return;
+    }
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Please enter a valid email address.');
+      return;
+    }
+    if (!dateTime) {
+      toast.error('Please select a preferred date and time.');
+      return;
+    }
 
-    // Alert with summary
-    let summary = `📅 Call booked for ${name} on ${new Date(dateTime).toLocaleString()}\n📧 Email: ${email}`;
-    if (phone) summary += `\n📞 Phone: ${phone}`;
-    if (message) summary += `\n📝 Message: ${message}`;
+    setSubmitting(true);
+    try {
+      const apiUrl = `${window.location.origin}/api/calls/bookings`;
+      console.log(`Submitting booking to: ${apiUrl}`, formData);
 
-    alert(summary);
+      const res = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
 
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      dateTime: '',
-      message: '',
-    });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Server responded with ${res.status}: ${errorText}`);
+      }
+
+      const data = await res.json();
+      console.log('Submission response:', data);
+
+      toast.success('Call booking submitted successfully!');
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        dateTime: '',
+        message: '',
+      });
+    } catch (err) {
+      console.error('Submission error:', err);
+      toast.error(`Failed to submit booking: ${err.message}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -49,7 +77,6 @@ const BookACall = () => {
           <span className="text-[#883FFF]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
             NRNHUB
           </span>
-          
         </h1>
         <p className="text-sm md:text-base text-gray-600 mt-3 text-center">
           Schedule a call to discuss your needs. Fill out the form below, and we’ll get back to you soon!
@@ -74,6 +101,7 @@ const BookACall = () => {
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               required
               aria-required="true"
+              disabled={submitting}
             />
           </div>
 
@@ -92,6 +120,7 @@ const BookACall = () => {
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               required
               aria-required="true"
+              disabled={submitting}
             />
           </div>
 
@@ -109,6 +138,7 @@ const BookACall = () => {
               placeholder="Enter your phone number (optional)"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               pattern="[0-9+()-]*"
+              disabled={submitting}
             />
           </div>
 
@@ -126,6 +156,7 @@ const BookACall = () => {
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800"
               required
               aria-required="true"
+              disabled={submitting}
             />
           </div>
 
@@ -142,6 +173,7 @@ const BookACall = () => {
               placeholder="Any additional details or questions?"
               className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-[#C4A1FF] focus:ring-2 focus:outline-none text-sm text-gray-800 resize-y"
               rows="4"
+              disabled={submitting}
             />
           </div>
 
@@ -149,7 +181,8 @@ const BookACall = () => {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="bg-[#883FFF] hover:bg-[#b88aff] transition px-6 py-3 rounded-xl text-white text-sm font-medium shadow-md flex items-center gap-2"
+              className={`bg-[#883FFF] hover:bg-[#b88aff] transition px-6 py-3 rounded-xl text-white text-sm font-medium shadow-md flex items-center gap-2 ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+              disabled={submitting}
             >
               <svg
                 className="w-4 h-4"
@@ -165,7 +198,7 @@ const BookACall = () => {
                   d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                 />
               </svg>
-              Schedule Call
+              {submitting ? 'Submitting...' : 'Schedule Call'}
             </button>
           </div>
         </form>

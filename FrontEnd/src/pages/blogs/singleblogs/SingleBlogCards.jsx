@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { formatDate } from '../../../../utilis/dateFormater';
-import EditorJsHtml from 'editorjs-html';
-import { Share2 } from 'lucide-react';
-import "/Users/user/Desktop/nnrnhub/FrontEnd/src/index.css"; // Adjust path as needed
+import { Share2, Facebook, Twitter, MessageCircle, Mail } from 'lucide-react';
 
 // Category colors mapping (consistent with Category.jsx and CategoryNav.jsx)
 const categoryColors = {
@@ -19,9 +18,38 @@ const categoryColors = {
   sasa: 'bg-purple-600',
 };
 
+// Parse content helper function (works for both content and conclusion)
+const parseContent = (contentObj, type = 'content') => {
+  try {
+    if (!contentObj) {
+      console.warn(`No ${type} available:`, contentObj);
+      return `<p>No ${type} available.</p>`;
+    }
+
+    // Handle different content formats
+    if (typeof contentObj === 'string') {
+      console.log(`${type} is string:`, contentObj);
+      return contentObj;
+    } else if (contentObj.type === 'quill' && contentObj.data) {
+      console.log(`${type} is quill format:`, contentObj.data);
+      return contentObj.data;
+    } else if (contentObj.blocks) {
+      // Legacy EditorJS format support
+      console.warn(`EditorJS ${type} format detected - consider migrating this content`);
+      return `<p>This ${type} was created with the old editor. Please consider updating it.</p>`;
+    } else {
+      console.warn(`Unrecognized ${type} format:`, contentObj);
+      return `<p>Unable to render this ${type} format.</p>`;
+    }
+  } catch (error) {
+    console.error(`Error parsing ${type}:`, error.message, 'Content:', contentObj);
+    return `<p>Error rendering ${type}: ${error.message}</p>`;
+  }
+};
+
 // Calculate reading time based on content
 const calculateReadingTime = (content) => {
-  const WPM = 238; // Average reading speed (words per minute)
+  const WPM = 238;
 
   try {
     if (!content) {
@@ -29,33 +57,12 @@ const calculateReadingTime = (content) => {
       return '1 min read';
     }
 
-    let text = '';
-
-    // Handle string or object content
-    const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
-
-    // Extract text from blocks
-    if (parsedContent && parsedContent.blocks && Array.isArray(parsedContent.blocks)) {
-      text = parsedContent.blocks
-        .map((block) => {
-          if (block.type === 'paragraph') return block.data.text || '';
-          if (block.type === 'header') return block.data.text || '';
-          if (block.type === 'list') {
-            return Array.isArray(block.data.items)
-              ? block.data.items
-                  .map((item) => (typeof item === 'object' ? item.content || '' : item))
-                  .join(' ')
-              : '';
-          }
-          return '';
-        })
-        .join(' ');
-    } else {
-      console.warn('Invalid content structure:', parsedContent);
-      return '1 min read';
-    }
-
-    // Count words and calculate reading time
+    // Extract text from HTML content
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = typeof content === 'string' ? content : 
+                        content.data ? content.data : '';
+    const text = tempDiv.textContent || tempDiv.innerText || '';
+    
     const words = text.split(/\s+/).filter(Boolean).length;
     const minutes = Math.max(1, Math.ceil(words / WPM));
     return `${minutes} min read`;
@@ -65,153 +72,218 @@ const calculateReadingTime = (content) => {
   }
 };
 
-const edjsParser = EditorJsHtml({
-  paragraph: (block) => `<p>${block.data.text}</p>`,
-  header: (block) => `<h${block.data.level}>${block.data.text}</h${block.data.level}>`,
-  list: (block) => {
-    console.log('List Block Data:', JSON.stringify(block, null, 2));
-    const items = block.data.items.map((item) => {
-      const text = typeof item === 'object' ? item.content || JSON.stringify(item) : item;
-      return `<li>${text}</li>`;
-    }).join('');
-    const style = block.data.style ? block.data.style.toLowerCase() : 'unordered';
-    if (style === 'unordered') {
-      return `<ul>${items}</ul>`;
-    } else {
-      // Handle ordered list with different counter types
-      const counterType = block.data.meta?.counterType || 'numeric';
-      let listType = 'decimal';
-      switch (counterType) {
-        case 'upper-alpha':
-          listType = 'upper-alpha';
-          break;
-        case 'lower-alpha':
-          listType = 'lower-alpha';
-          break;
-        case 'upper-roman':
-          listType = 'upper-roman';
-          break;
-        case 'lower-roman':
-          listType = 'lower-roman';
-          break;
-        case 'numeric':
-        default:
-          listType = 'decimal';
-          break;
-      }
-      return `<ol type="${listType}">${items}</ol>`;
-    }
-  },
-});
-
 const SingleBlogCards = ({ blog }) => {
+  const { adImages, adLinks, bottomAdVisible } = useSelector((state) => state.ads);
+
+  // Debugging log
+  console.log('SingleBlogCards received blog:', blog);
+
   if (!blog || !blog.title) {
     console.error('Invalid blog data:', blog);
-    return <div className="bg-white p-8">Invalid blog data.</div>;
+    return (
+      <div className="bg-white p-8">
+        <p className="text-red-600 font-semibold">
+          Error: Unable to load blog post. Please try again later.
+        </p>
+      </div>
+    );
   }
 
-  const { title, createdAt, author, content, coverImg, rating, category } = blog;
+  const { title, createdAt, author, content, conclusion, coverImg, category } = blog;
 
-  // Calculate reading time
+  // Debugging conclusion
+  console.log('Conclusion data:', conclusion);
+
   const readingTime = useMemo(() => {
     return calculateReadingTime(content);
   }, [content]);
 
-  // Handle share functionality
-  const handleShare = () => {
+  const shareUrl = window.location.href;
+  const shareTitle = title || 'Blog Post';
+
+  const shareToFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+  };
+
+  const shareToTwitter = () => {
+    window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`, '_blank');
+  };
+
+  const shareToWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`, '_blank');
+  };
+
+  // Fixed email share function that works with native mail clients
+  const shareToEmail = () => {
+    try {
+      const subject = encodeURIComponent(`Check out this blog: ${shareTitle}`);
+      const body = encodeURIComponent(`I found this great blog post: ${shareTitle}\n\nRead it here: ${shareUrl}`);
+      
+      // Use the Windows-specific protocol when available
+      if (navigator.userAgent.indexOf('Windows') !== -1) {
+        // Try to use Windows Mail app protocol
+        const mailtoLink = `ms-mail:?subject=${subject}&body=${body}`;
+        
+        // Create and click a hidden anchor
+        const link = document.createElement('a');
+        link.href = mailtoLink;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        
+        // Remove the link after a short delay
+        setTimeout(() => {
+          document.body.removeChild(link);
+        }, 100);
+      } else {
+        // Fallback to standard mailto for other platforms
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+    } catch (error) {
+      console.error('Error opening email client:', error);
+      alert('Could not open email client. You can copy the link and share it manually.');
+    }
+  };
+
+  const handleGenericShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: title || 'Blog Post',
-        url: window.location.href,
+        title: shareTitle,
+        url: shareUrl,
       }).catch((err) => console.error('Error sharing:', err));
     } else {
-      // Fallback - copy URL to clipboard
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       alert('Link copied to clipboard!');
     }
   };
 
-  let htmlBlocks = [];
-  try {
-    console.log('Raw Content:', content);
-    const parsedContent = typeof content === 'string' ? JSON.parse(content) : content;
-    console.log('Parsed Content:', parsedContent);
+  const authorName = author?.username || author?.name || (typeof author === 'string' ? author : author?.email) || 'Unknown Author';
 
-    if (!parsedContent || !parsedContent.blocks || !Array.isArray(parsedContent.blocks)) {
-      throw new Error('Invalid content structure: "blocks" is missing or not an array');
-    }
-
-    const parsedBlocks = edjsParser.parse(parsedContent);
-    console.log('Parsed Blocks:', parsedBlocks);
-
-    // Handle string or array output from edjsParser
-    if (typeof parsedBlocks === 'string') {
-      htmlBlocks = parsedBlocks.match(/<(?:h\d|p|ul|ol)[\s\S]*?(?:<\/(?:h\d|p|ul|ol)>|$)/gi) || [parsedBlocks];
-    } else if (Array.isArray(parsedBlocks)) {
-      htmlBlocks = parsedBlocks;
-    } else {
-      throw new Error('Unexpected parsedBlocks type: ' + typeof parsedBlocks);
-    }
-
-    console.log('Final htmlBlocks:', htmlBlocks);
-
-    if (htmlBlocks.length === 0) {
-      console.warn('No valid HTML blocks generated. Parsed Blocks:', parsedBlocks, 'Content:', parsedContent);
-      htmlBlocks = ['<p>No content available.</p>'];
-    }
-  } catch (error) {
-    console.error('Error parsing blog content:', error.message, 'Content:', content);
-    htmlBlocks = [`<p>Error rendering blog content: ${error.message}</p>`];
-  }
+  // Check if conclusion exists and has content
+  const hasConclusion = conclusion && 
+    ((conclusion.data && conclusion.data.trim() !== '') || 
+     (typeof conclusion === 'string' && conclusion.trim() !== ''));
 
   return (
     <div className="bg-white p-8">
-      <div>
-        {/* Title row with reading time, category, and share button */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500 font-medium">{readingTime}</span>
-            <span
-              className={`inline-block px-3 py-1 rounded-full text-sm text-white ${
-                categoryColors[category?.toLowerCase()] || 'bg-[#883FFF]'
-              }`}
-            >
-              {category || 'General'}
-            </span>
-          </div>
-          <h1 className="md:text-4xl text-3xl font-medium">{title}</h1>
+      <div className="mb-8">
+        <span
+          className={`inline-block px-3 py-1 rounded-md text-base font-medium text-white mb-4 ${
+            categoryColors[category?.toLowerCase()] || categoryColors.travel
+          }`}
+        >
+          {category || 'travel'}
+        </span>
+        <h1 className="text-3xl md:text-4xl font-medium mb-4">{title}</h1>
+        <div className="flex flex-wrap items-center gap-2 text-base mb-1">
+          <span className="text-gray-600">by</span>
+          <span className="text-blue-600 font-bold">{authorName}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+          <span>{formatDate(createdAt)}</span>
+          <span className="inline-block w-1 h-1 bg-gray-400 rounded-full"></span>
+          <span>{readingTime}</span>
+        </div>
+      </div>
+
+      <div className="relative mt-8">
+        <div className="absolute left-0 top-40 flex flex-col gap-2 transform -translate-x-16">
           <button
-            onClick={handleShare}
-            className="flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors"
+            onClick={shareToFacebook}
+            className="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition-colors"
+            aria-label="Share on Facebook"
+          >
+            <Facebook size={20} />
+          </button>
+          <button
+            onClick={shareToTwitter}
+            className="bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
+            aria-label="Share on X"
+            title="Share on X (formerly Twitter)"
+          >
+            <Twitter size={20} />
+          </button>
+          <button
+            onClick={shareToWhatsApp}
+            className="bg-green-500 text-white p-2 rounded-full hover:bg-green-600 transition-colors"
+            aria-label="Share on WhatsApp"
+          >
+            <MessageCircle size={20} />
+          </button>
+          <button
+            onClick={shareToEmail}
+            className="bg-indigo-600 text-white p-2 rounded-full hover:bg-indigo-700 transition-colors"
+            aria-label="Share via Email"
+            title="Share via Email (Windows Mail)"
+          >
+            <Mail size={20} />
+          </button>
+          <button
+            onClick={handleGenericShare}
+            className="bg-gray-200 text-gray-700 p-2 rounded-full hover:bg-gray-300 transition-colors"
             aria-label="Share this article"
           >
             <Share2 size={20} />
           </button>
         </div>
 
-        <p className="mb-6">
-          {formatDate(createdAt)} by
-          <span className="text-blue-400 cursor-pointer"> {author?.email || author || 'Unknown Author'} </span>
-        </p>
-      </div>
-
-      <div>
         <img
           src={coverImg || 'https://via.placeholder.com/800x520'}
           alt={title || 'Cover'}
           className="w-full md:h-[520px] object-cover rounded-lg shadow-md"
-          onError={(e) => (e.target.src = 'https://via.placeholder.com/800x520')}
+          onError={(e) => {
+            console.error('Failed to load cover image:', coverImg);
+            e.target.src = 'https://via.placeholder.com/800x520';
+          }}
         />
       </div>
 
-      <div className="mt-8 space-y-6 editorjsdiv">
-        {htmlBlocks.map((block, index) => (
-          <div key={index} dangerouslySetInnerHTML={{ __html: block }} />
-        ))}
+      <div className="mt-8 space-y-6 quill-content">
+        <div dangerouslySetInnerHTML={{ __html: parseContent(content, 'content') }} />
       </div>
 
-      <div className="w-full bg-red-200 p-8 text-center mt-8 h-60">
-        <p className="text-red-600 font-semibold">Ad Below Blog (Large)</p>
+      {/* Conclusion Section with Border and Styling */}
+      <div className="mt-12 mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Conclusion</h2>
+        <div className="border-2 border-emerald-600 rounded-lg p-6 bg-emerald-50">
+          {hasConclusion ? (
+            <div 
+              className="quill-content prose max-w-none" 
+              dangerouslySetInnerHTML={{ __html: parseContent(conclusion, 'conclusion') }} 
+            />
+          ) : (
+            <p className="text-gray-600 italic">No conclusion provided for this blog.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-8">
+        {bottomAdVisible && (
+          <div>
+            {adImages.bottom ? (
+              <a
+                href={adLinks.bottom || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full"
+              >
+                <img
+                  src={adImages.bottom}
+                  alt="Bottom Ad"
+                  className="w-full object-contain rounded-lg shadow-md"
+                  onError={(e) => {
+                    console.error('Failed to load ad image:', adImages.bottom);
+                    e.target.src = 'https://via.placeholder.com/1152x160';
+                  }}
+                />
+              </a>
+            ) : (
+              <div className="w-full bg-gradient-to-r from-red-200 to-red-100 p-4 text-center rounded-lg shadow-md flex items-center justify-center">
+                <p className="text-red-600 font-semibold">Advertisement - Sponsored Content</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

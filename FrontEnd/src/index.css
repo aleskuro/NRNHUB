@@ -1,3 +1,7 @@
+/* Import Baumans and comment out Bebas Neue */
+@import url('https://fonts.googleapis.com/css2?family=Baumans&family=Luxurious+Roman&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap'); */
+
 @import "tailwindcss";
 
 .active {
@@ -8,93 +12,6 @@ input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
-}
-
-/* Header styles for h1 to h6 */
-.editorjsdiv h1 {
-  font-weight: 700;
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-.editorjsdiv h2 {
-  font-weight: 600;
-  font-size: 1.5rem;
-  margin-bottom: 0.875rem;
-}
-
-.editorjsdiv h3 {
-  font-weight: 500;
-  font-size: 1.25rem;
-  margin-bottom: 0.75rem;
-}
-
-.editorjsdiv h4 {
-  font-weight: 500;
-  font-size: 1.125rem;
-  margin-bottom: 0.625rem;
-}
-
-.editorjsdiv h5 {
-  font-weight: 500;
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.editorjsdiv h6 {
-  font-weight: 500;
-  font-size: 0.875rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Specific styles for <ul> and its <li> */
-.editorjsdiv ul {
-  list-style-type: disc;
-  padding-left: 2rem;
-  margin-bottom: 1rem;
-}
-
-.editorjsdiv ul li {
-  margin-bottom: 10px;
-  padding-left: 10px;
-  margin-left: 25px;
-}
-
-/* Base styles for <ol> and its <li> */
-.editorjsdiv ol {
-  padding-left: 2rem;
-  margin-bottom: 1rem;
-}
-
-/* Let the type attribute control the style, with a fallback */
-.editorjsdiv ol:not([type]) {
-  list-style-type: decimal; /* Default if no type is set */
-}
-
-.editorjsdiv ol[type="decimal"] {
-  list-style-type: decimal;
-}
-
-.editorjsdiv ol[type="upper-alpha"] {
-  list-style-type: upper-alpha;
-}
-
-.editorjsdiv ol[type="lower-alpha"] {
-  list-style-type: lower-alpha;
-}
-
-.editorjsdiv ol[type="upper-roman"] {
-  list-style-type: upper-roman;
-}
-
-.editorjsdiv ol[type="lower-roman"] {
-  list-style-type: lower-roman;
-}
-
-.editorjsdiv ol li {
-  margin-bottom: 10px;
-  padding-left: 10px;
-  margin-left: 25px;
 }
 
 @layer utilities {
@@ -139,8 +56,7 @@ input[type=number]::-webkit-outer-spin-button {
 
   /* Slow bounce for envelope icon */
   @keyframes bounceSlow {
-    0%,
-    100% {
+    0%, 100% {
       transform: translateY(0);
     }
     50% {
@@ -184,35 +100,122 @@ input[type=number]::-webkit-outer-spin-button {
   }
 
   .animate-bounce-slow {
-    animation: bounceSlow 2s ease-in-out infinite;  
+    animation: bounceSlow 2s ease-in-out infinite;
   }
 }
 
-.ce-block__content {
-  font-size: 16px;
+/* Responsive form styling */
+@media (max-width: 768px) {
+  .md\:w-2\/3,
+  .md\:w-1\/3 {
+    width: 100%;
+  }
+
+  .md\:flex-row {
+    flex-direction: column;
+  }
+}
+
+/* Social share buttons responsiveness */
+@media (max-width: 640px) {
+  .absolute.left-0.top-40 {
+    position: static;
+    transform: none;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    margin-top: 16px;
+    justify-content: center;
+  }
+}
+
+/* Ensure form inputs are consistent */
+input, textarea {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Improve button consistency */
+button[type="submit"] {
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button[type="submit"]:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Fallback for placeholder images */
+img[src*="/api/placeholder"] {
+  content: url('https://via.placeholder.com/80');
+}
+
+/* Additional styling for the Quill editor */
+.quill-content {
+  font-family: 'Baumans', sans-serif;
   line-height: 1.6;
 }
 
-.ce-header {
-  font-weight: 600;
-  font-size: 1.5rem;
+.quill-content h1 {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
 }
 
-.ce-paragraph {
-  padding: 0.5rem 0;
+.quill-content h2 {
+  font-size: 1.75em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
 }
 
-@keyframes pulse-border {
-  0%, 100% { border-color: #6366f1; }
-  50% { border-color: #a5b4fc; }
+.quill-content h3 {
+  font-size: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
 }
 
-/* src/index.css or App.css */
-@keyframes pulse-border {
-  0%, 100% { border-color: #6366f1; }
-  50% { border-color: #a5b4fc; }
-}
-.animate-\[pulse-border_2s_infinite\] {
-  animation: pulse-border 2s infinite;
+.quill-content p {
+  margin-bottom: 1em;
 }
 
+.quill-content ul, .quill-content ol {
+  margin-left: 1.5em;
+  margin-bottom: 1em;
+}
+
+.quill-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1em 0;
+  border-radius: 4px;
+}
+
+.quill-content blockquote {
+  border-left: 4px solid #ccc;
+  padding-left: 16px;
+  margin-left: 0;
+  color: #666;
+}
+
+.quill-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+/* Fix Quill editor styles */
+.ql-container {
+  font-size: 16px !important;
+  height: calc(300px - 42px) !important;
+}
+
+.ql-editor {
+  min-height: 258px;
+}

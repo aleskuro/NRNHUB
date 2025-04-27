@@ -2,7 +2,7 @@ import React from 'react';
 import { FaEnvelope, FaFacebook, FaInstagram, FaTiktok, FaTwitter, FaYoutube } from 'react-icons/fa';
 import { NavLink } from 'react-router-dom';
 import logo from './logo.png';
-import "/Users/user/Desktop/nnrnhub/FrontEnd/src/index.css";
+
 
 const Footer = () => {
   return (

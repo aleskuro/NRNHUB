@@ -80,26 +80,7 @@ const AdminNavigation = () => {
               >
                 Users
               </NavLink>
-              <NavLink
-                to="/dashboard/messages"
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-blue-600 font-bold'
-                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
-                }
-              >
-                Messages
-              </NavLink>
-              <NavLink
-                to="/dashboard/advertisers"
-                className={({ isActive }) =>
-                  isActive
-                    ? 'text-blue-600 font-bold'
-                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
-                }
-              >
-                Advertisers
-              </NavLink>
+              
               <NavLink
                 to="/dashboard/ads-management"
                 className={({ isActive }) =>
@@ -109,6 +90,56 @@ const AdminNavigation = () => {
                 }
               >
                 Ads-management
+              </NavLink>
+              <NavLink
+                to="/dashboard/cover-uploads"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+                Upload
+              </NavLink>
+              <NavLink
+                to="/dashboard/ad-messages"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+                Ad Messages
+              </NavLink>
+              <NavLink
+                to="/dashboard/Booked"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+                Booked Calls
+              </NavLink>
+              <NavLink
+                to="/dashboard/Subscribers"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+                Subscribers
+              </NavLink>
+              <NavLink
+                to="/dashboard/Blogs-Analytics"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+                Analytics
               </NavLink>
             </li>
           </ul>
