@@ -6,10 +6,10 @@ const userSchema = new Schema({
     type: String,
     required: [true, 'Username is required'],
     unique: true,
-    trim: true, // Remove leading/trailing whitespace
+    trim: true,
     validate: {
       validator: function (value) {
-        return !/\s/.test(value); // Disallow spaces
+        return !/\s/.test(value);
       },
       message: 'Username cannot contain spaces',
     },
@@ -19,13 +19,13 @@ const userSchema = new Schema({
     required: [true, 'Email is required'],
     unique: true,
     trim: true,
-    lowercase: true, // Store emails in lowercase for consistency
-    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'], // Basic email format validation
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email address'],
   },
   password: {
     type: String,
     required: [true, 'Password is required'],
-    minlength: [8, 'Password must be at least 8 characters long'], // Enforce 8-char minimum
+    minlength: [8, 'Password must be at least 8 characters long'],
   },
   birthdate: {
     type: Date,
@@ -51,12 +51,33 @@ const userSchema = new Schema({
   role: {
     type: String,
     default: 'user',
-    enum: ['user', 'admin'], // Optional: Restrict roles
+    enum: ['user', 'admin'],
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
+  // New fields for tracking login activity
+  lastOnline: {
+    type: Date,
+    default: null,
+  },
+  loginHistory: [
+    {
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+      ipAddress: {
+        type: String,
+        default: null,
+      },
+      userAgent: {
+        type: String,
+        default: null,
+      },
+    },
+  ],
 });
 
 // Hash password before saving
@@ -65,11 +86,11 @@ userSchema.pre('save', async function (next) {
     if (!this.isModified('password')) {
       return next();
     }
-    const salt = await bcrypt.genSalt(10); // Generate salt
-    this.password = await bcrypt.hash(this.password, salt); // Hash password
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
     next();
   } catch (error) {
-    next(error); // Pass error to Mongoose
+    next(error);
   }
 });
 

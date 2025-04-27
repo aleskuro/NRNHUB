@@ -21,7 +21,11 @@ import Subscribers from "../src/pages/admin/Messages/Subscribers";
 import Blogs from "../src/pages/blogs/Blogs";
 import Category from "../src/pages/minipage/Category"; 
 // import BookACall from "../src/pages/admin/Messages/BookACall";
-// import BookACall from "../src/pages/admin/Messages/BookACall";
+import BlogCover from "../src/pages/admin/Post/BlogCover";
+import AdminAdvertisers from "../src/pages/admin/Messages/AdminMessages/AdminAdvertisers";
+import AdminBookACall from "../src/pages/admin/Messages/AdminMessages/AdminBookACall";
+import BlogAnalyticsDashboard from "../src/pages/admin/Dashboard/BlogAnalyticsDashboard";
+import AdminSubscribers from "../src/pages/admin/Messages/AdminMessages/AdminSubscribers";
 
 const router = createBrowserRouter([
   {
@@ -53,6 +57,13 @@ const router = createBrowserRouter([
           { path: "update-item/:id", element: <UpdatePost /> },
           { path: "update", element: <UpdateUserModal /> },
           { path: "ads-management", element: <ManageAds /> },
+          // { path: "cover-uploads", element: <Cover /> },
+          {path: "cover-uploads" , element: <BlogCover />},
+         
+          {path: "ad-messages" , element: <AdminAdvertisers />},
+          {path: "Booked" , element: <AdminBookACall />},
+          {path: "Blogs-Analytics" , element: <BlogAnalyticsDashboard />},
+          {path: "Subscribers" , element: <AdminSubscribers />},
         ],
       },
     ],
