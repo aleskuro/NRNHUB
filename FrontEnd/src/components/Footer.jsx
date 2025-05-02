@@ -3,22 +3,26 @@ import { FaEnvelope, FaFacebook, FaInstagram, FaTiktok, FaYoutube } from 'react-
 import { X } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import logo from './logo.png';
+import "/Users/user/Desktop/nnrnhub/FrontEnd/src/index.css";
 
-// Logo & About Section
-const LogoAndAbout = () => (
-  <div className="animate-fade-in-up flex flex-col items-center">
-    <img
-      src={logo}
-      alt="NRNHUB Logo"
-      className="h-16 mb-6 mx-auto transform transition-transform duration-300 hover:scale-105"
-    />
-    <p className="text-gray-700 text-sm leading-relaxed text-center max-w-xs">
-      NRNHUB connects NRNs to their roots—through culture, community, and collective initiatives worldwide.
-    </p>
-    <hr className="my-4 border-gray-300 w-full max-w-xs" />
-    <p className="text-sm text-black text-center">© 2025 NRNHUB. All rights reserved.</p>
-  </div>
-);
+const Footer = () => {
+  return (
+    <footer className="bg-gradient-to-r from-[#ffffff] to-[#ffffff] text-gray-800 py-16 overflow-hidden">
+      <div className="container mx-auto px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          {/* Logo & About */}
+          <div className="animate-fade-in-up">
+            <img
+              src={logo}
+              alt="NRNHUB Logo"
+              className="h-16 mb-6 transform transition-transform duration-300 hover:scale-105"
+            />
+            <p className="text-gray-700 text-sm leading-relaxed ">
+              NRNHUB connects NRNs to their roots—through culture, community, and collective initiatives worldwide.
+            </p>
+            <hr className="my-4 border-gray-300" />
+            <p className="text-sm text-black ">© 2025 NRNHUB. All rights reserved.</p>
+          </div>
 
 // Events & Initiatives Section
 const EventsAndInitiatives = () => (
