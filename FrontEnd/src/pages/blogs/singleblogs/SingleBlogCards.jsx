@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { formatDate } from '../../../../utilis/dateFormater';
-import { Share2, Facebook, Twitter, MessageCircle, Mail } from 'lucide-react';
+import { Share2, Facebook, X, MessageCircle, Mail, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react';
 
 // Category colors mapping (consistent with Category.jsx and CategoryNav.jsx)
 const categoryColors = {
@@ -105,7 +105,7 @@ const SingleBlogCards = ({ blog }) => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
   };
 
-  const shareToTwitter = () => {
+  const shareToX = () => {
     window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`, '_blank');
   };
 
@@ -196,12 +196,12 @@ const SingleBlogCards = ({ blog }) => {
             <Facebook size={20} />
           </button>
           <button
-            onClick={shareToTwitter}
+            onClick={shareToX}
             className="bg-black text-white p-2 rounded-full hover:bg-gray-800 transition-colors"
             aria-label="Share on X"
             title="Share on X (formerly Twitter)"
           >
-            <Twitter size={20} />
+            <X size={20} />
           </button>
           <button
             onClick={shareToWhatsApp}
@@ -242,18 +242,65 @@ const SingleBlogCards = ({ blog }) => {
         <div dangerouslySetInnerHTML={{ __html: parseContent(content, 'content') }} />
       </div>
 
-      {/* Conclusion Section with Border and Styling */}
+      {/* Collapsible Key Takeaways Section */}
       <div className="mt-12 mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Conclusion</h2>
-        <div className="border-2 border-emerald-600 rounded-lg p-6 bg-emerald-50">
-          {hasConclusion ? (
-            <div 
-              className="quill-content prose max-w-none" 
-              dangerouslySetInnerHTML={{ __html: parseContent(conclusion, 'conclusion') }} 
-            />
-          ) : (
-            <p className="text-gray-600 italic">No conclusion provided for this blog.</p>
-          )}
+        <div className="border border-[#883FFF] rounded-lg overflow-hidden">
+          {/* Key Takeaways Header with Toggle */}
+          {(() => {
+            const [isExpanded, setIsExpanded] = useState(true);
+            return (
+              <>
+                <div 
+                  className="flex items-center justify-between p-4 bg-purple-50 cursor-pointer"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                >
+                  <div className="flex items-center">
+                    <span className="text-[#883FFF] font-bold text-lg mr-2">✦</span>
+                    <h2 className="text-lg font-medium">Key Takeaways</h2>
+                  </div>
+                  {isExpanded ? 
+                    <ChevronUp className="text-[#883FFF]" size={20} /> : 
+                    <ChevronDown className="text-[#883FFF]" size={20} />
+                  }
+                </div>
+                
+                {/* Collapsible Content */}
+                {isExpanded && (
+                  <div className="p-4">
+                    {hasConclusion ? (
+                      <div 
+                        className="quill-content prose max-w-none" 
+                        dangerouslySetInnerHTML={{ __html: parseContent(conclusion, 'conclusion') }} 
+                      />
+                    ) : (
+                      <ul className="list-disc pl-6 space-y-3">
+                        <li className="text-gray-800">
+                          Despite being labeled unsafe for tourists by many countries, Libya continues to attract close to 100,000 international visitors annually, with some travelers joining the "danger tourism" trend.
+                        </li>
+                        <li className="text-gray-800">
+                          The US and UK governments have issued the highest travel advisories against traveling to Libya due to concerns of crime, terrorism, civil unrest, and armed conflict.
+                        </li>
+                        <li className="text-gray-800">
+                          Travelers like Daniel Pinto, who describe themselves as "danger tourists," are drawn to mysterious and risky destinations like Libya, despite the potential dangers and warnings from official advisories.
+                        </li>
+                      </ul>
+                    )}
+                    
+                    {/* Divider and See a mistake text */}
+                    <hr className="my-4 border-gray-200" />
+                    <div className="text-right">
+                      <a 
+                        href="http://localhost:5173/messages" 
+                        className="text-xs text-gray-500 hover:text-[#883FFF] transition-colors inline-flex items-center"
+                      >
+                        <span>See a mistake? Let us know.</span>
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
 
@@ -285,6 +332,8 @@ const SingleBlogCards = ({ blog }) => {
           </div>
         )}
       </div>
+      
+
     </div>
   );
 };

@@ -2,11 +2,51 @@ import React, { useRef, useState, useEffect } from "react";
 import { usePostBlogMutation } from "../../../Redux/features/blogs/blogApi";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import EditorJS from '@editorjs/editorjs';
-import Header from '@editorjs/header';
-import List from '@editorjs/list';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Suppress specific console warnings
+const originalConsoleError = console.error;
+console.error = (...args) => {
+  if (
+    args[0].includes("Warning: findDOMNode is deprecated") ||
+    args[0].includes("DOMNodeInserted mutation event") ||
+    args[0].includes("Received `true` for a non-boolean attribute `jsx`") ||
+    args[0].includes("InvalidCharacterError")
+  ) {
+    return;
+  }
+  originalConsoleError(...args);
+};
+
+// Apply suppression early to catch Quill initialization warnings
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  if (args[0].includes("DOMNodeInserted mutation event")) {
+    return;
+  }
+  originalConsoleWarn(...args);
+};
+
+// Register custom fonts with Quill
+const Font = ReactQuill.Quill.import("formats/font");
+Font.whitelist = [
+  "Montserrat",
+  "Roboto",
+  "OpenSans",
+  "Lato",
+  "FiraSans",
+  "Merriweather",
+  "PlayfairDisplay",
+  "Nunito",
+  "Raleway",
+  "Rubik",
+  "Baumans",
+  "Lora", // Replaced LuxuriousRoman with Lora
+];
+ReactQuill.Quill.register(Font, true);
 
 const AddPost = () => {
   const [title, setTitle] = useState("");
@@ -14,36 +54,78 @@ const AddPost = () => {
   const [coverImg, setCoverImg] = useState("");
   const [category, setCategory] = useState("");
   const [rating, setRating] = useState(0);
+  const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
+  const [editorContent, setEditorContent] = useState("");
+  const [conclusionContent, setConclusionContent] = useState("");
+  const quillRef = useRef(null);
+  const conclusionQuillRef = useRef(null);
+
+  const categoryOptions = [
+    "technology",
+    "travel",
+    "food",
+    "lifestyle",
+    "fashion",
+    "health",
+    "finance",
+    "entertainment",
+    "cars",
+    "general",
+  ];
 
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const [PostBlog, { isLoading, isSuccess, isError, error, reset }] =
     usePostBlogMutation();
 
-  useEffect(() => {
-    const editor = new EditorJS({
-      holder: "editorjs",
-      autofocus: true,
-      tools: {
-        header: {
-          class: Header,
-          inlineToolbar: true
+  // Quill editor modules configuration with normalized font names
+  const modules = {
+    toolbar: [
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ indent: "-1" }, { indent: "+1" }],
+      [{ color: [] }, { background: [] }],
+      [
+        {
+          font: [
+            "",
+            "Montserrat",
+            "Roboto",
+            "OpenSans",
+            "Lato",
+            "FiraSans",
+            "Merriweather",
+            "PlayfairDisplay",
+            "Nunito",
+            "Raleway",
+            "Rubik",
+            "Baumans",
+            "Lora", // Replaced LuxuriousRoman with Lora
+          ],
         },
-        list: {
-          class: List,
-          inlineToolbar: true
-        }
-      },
-      onReady: () => {
-        editorRef.current = editor;
-      }
-    });
+      ],
+      [{ align: [] }],
+      ["link"],
+      ["clean"],
+    ],
+  };
 
-    return () => {
-      editor?.destroy?.();
-      editorRef.current = null;
-    };
-  }, []);
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "indent",
+    "color",
+    "background",
+    "font",
+    "align",
+    "link",
+  ];
 
   useEffect(() => {
     if (isSuccess) {
@@ -70,7 +152,18 @@ const AddPost = () => {
     setCoverImg("");
     setCategory("");
     setRating(0);
-    if (editorRef.current) editorRef.current.clear();
+    setEditorContent("");
+    setConclusionContent("");
+  };
+
+  const handleCategoryChange = (e) => {
+    setCategory(e.target.value);
+    setShowCategorySuggestions(true);
+  };
+
+  const selectSuggestedCategory = (suggestedCategory) => {
+    setCategory(suggestedCategory);
+    setShowCategorySuggestions(false);
   };
 
   const handleSubmit = async (e) => {
@@ -98,7 +191,8 @@ const AddPost = () => {
 
       const newPost = {
         title,
-        content, // Ensure this is the raw object, not stringified here
+        content: contentBlocks,
+        conclusion: conclusionBlocks,
         coverImg,
         category,
         description: metaDescription,
@@ -114,17 +208,21 @@ const AddPost = () => {
   };
 
   return (
-    <div className="bg-white md:p-8 p-2">
-      <h2 className="text-2xl font-semibold">Create A New Blog Post</h2>
+    <div className="bg-white p-4 md:p-8 font-[Montserrat]">
+      <h2 className="text-xl font-semibold mb-4 md:text-2xl font-[Playfair_Display] text-indigo-800">
+        Create A New Blog Post
+      </h2>
 
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
         <div>
-          <label className="font-semibold text-xl">Blog Title:</label>
+          <label className="block font-semibold text-gray-700 mb-2 text-lg font-[Raleway]">
+            Blog Title:
+          </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full bg-gray-100 px-5 py-3 focus:outline-none"
+            className="w-full bg-gray-100 px-4 py-2 focus:outline-none rounded-md border border-gray-300 focus:border-indigo-500 font-[Open_Sans]"
             placeholder="Ex: My Amazing Blog Post"
             required
           />
@@ -132,44 +230,124 @@ const AddPost = () => {
 
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           <div className="md:w-2/3 w-full">
-            <p className="font-semibold text-xl mb-2">Content Section</p>
-            <p className="text-xs italic">Write your post here...</p>
-            <div id="editorjs" className="bg-gray-100 p-2 min-h-[300px]" />
+            <div className="mb-10">
+              <p className="font-semibold text-gray-700 mb-2 text-lg font-[Merriweather]">
+                Content Section
+              </p>
+              <p className="text-sm italic text-gray-500 mb-2 font-[Lato]">
+                Write your post here...
+              </p>
+              <div className="bg-gray-100 rounded-md border border-gray-300">
+                <ReactQuill
+                  ref={quillRef}
+                  theme="snow"
+                  value={editorContent}
+                  onChange={(content) => {
+                    console.log("Content editor HTML:", content); // Debug: Log editor output
+                    setEditorContent(content);
+                  }}
+                  modules={modules}
+                  formats={formats}
+                  style={{ height: "300px", fontFamily: "'Nunito', sans-serif" }}
+                  className="bg-white rounded-md"
+                />
+              </div>
+            </div>
+
+            {/* Conclusion Editor */}
+            <div className="mb-8">
+              <p className="font-semibold text-gray-700 mb-2 text-lg font-[Merriweather]">
+                Conclusion Section
+              </p>
+              <p className="text-sm italic text-gray-500 mb-2 font-[Lato]">
+                Write your conclusion here...
+              </p>
+              <div className="bg-gray-100 rounded-md border border-gray-300">
+                <ReactQuill
+                  ref={conclusionQuillRef}
+                  theme="snow"
+                  value={conclusionContent}
+                  onChange={(content) => {
+                    console.log("Conclusion editor HTML:", content); // Debug: Log editor output
+                    setConclusionContent(content);
+                  }}
+                  modules={modules}
+                  formats={formats}
+                  style={{ height: "200px", fontFamily: "'Nunito', sans-serif" }}
+                  className="bg-white rounded-md"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="md:w-1/3 w-full border p-5 space-y-5">
-            <p className="font-semibold text-xl text-indigo-600">Blog Settings</p>
+          <div className="md:w-1/3 w-full border p-4 space-y-4 rounded-md border-gray-300 bg-gray-50">
+            <p className="font-semibold text-indigo-600 text-lg font-[Baumans]">
+              Blog Settings
+            </p>
 
             <div>
-              <label className="font-semibold">Cover Image:</label>
+              <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
+                Cover Image URL:
+              </label>
               <input
                 type="text"
                 value={coverImg}
                 onChange={(e) => setCoverImg(e.target.value)}
-                className="w-full bg-gray-100 px-5 py-3 focus:outline-none"
-                placeholder="https://example.com/image.jpg"
-                required
+                className="w-full bg-gray-100 px-4 py-2 rounded-md border border-gray-300 font-[Open_Sans]"
+                placeholder="https://example.com/cover.jpg"
               />
+              {coverImg && (
+                <img
+                  src={coverImg}
+                  alt="Cover Preview"
+                  className="mt-2 w-full h-32 object-cover rounded-md"
+                  onError={() => toast.error("Invalid image URL")}
+                />
+              )}
             </div>
 
-            <div>
-              <label className="font-semibold">Category:</label>
+            <div className="relative">
+              <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
+                Category:
+              </label>
               <input
                 type="text"
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-gray-100 px-5 py-3 focus:outline-none"
+                onChange={handleCategoryChange}
+                onFocus={() => setShowCategorySuggestions(true)}
+                className="w-full bg-gray-100 px-4 py-2 focus:outline-none rounded-md border border-gray-300 focus:border-indigo-500 font-[Open_Sans]"
                 placeholder="Technology, Travel, etc."
                 required
               />
+              {showCategorySuggestions && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                  {categoryOptions
+                    .filter(
+                      (opt) =>
+                        opt.toLowerCase().includes(category.toLowerCase()) ||
+                        category === ""
+                    )
+                    .map((option, index) => (
+                      <div
+                        key={index}
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100 capitalize font-[Open_Sans]"
+                        onClick={() => selectSuggestedCategory(option)}
+                      >
+                        {option}
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
 
             <div>
-              <label className="font-semibold">Meta Description:</label>
+              <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
+                Meta Description:
+              </label>
               <textarea
                 value={metaDescription}
                 onChange={(e) => setMetaDescription(e.target.value)}
-                className="w-full bg-gray-100 px-5 py-3 focus:outline-none"
+                className="w-full bg-gray-100 px-4 py-2 focus:outline-none rounded-md border border-gray-300 focus:border-indigo-500 font-[Open_Sans]"
                 rows={4}
                 placeholder="SEO description for your blog post."
                 required
@@ -177,7 +355,9 @@ const AddPost = () => {
             </div>
 
             <div>
-              <label className="font-semibold">Rating:</label>
+              <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
+                Rating:
+              </label>
               <input
                 type="number"
                 min="0"
@@ -185,33 +365,38 @@ const AddPost = () => {
                 step="0.5"
                 value={rating}
                 onChange={(e) => setRating(Number(e.target.value))}
-                className="w-full bg-gray-100 px-5 py-3 focus:outline-none"
+                className="w-full bg-gray-100 px-4 py-2 focus:outline-none rounded-md border border-gray-300 focus:border-indigo-500 font-[Open_Sans]"
                 placeholder="e.g., 5"
                 required
               />
             </div>
 
             <div>
-              <label className="font-semibold">Author:</label>
+              <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
+                Author:
+              </label>
               <input
                 type="text"
-                value={user.username}
-                className="w-full bg-gray-100 px-5 py-3"
+                value={user?.username || ""}
+                className="w-full bg-gray-100 px-4 py-2 rounded-md border border-gray-300 font-[Open_Sans]"
                 disabled
               />
             </div>
           </div>
         </div>
-
-        <br />
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-md font-medium"
-        >
-          {isLoading ? "Adding New Blog..." : "Add New Blog"}
-        </button>
+        <br></br>
+        <br></br>
+        <br></br>
+        <br></br>
+        <div className="mt-8">
+  <button
+    type="submit"
+    disabled={isLoading}
+    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 font-[Rubik] tracking-wide transition-colors duration-300"
+  >
+    {isLoading ? "Adding New Blog..." : "Add New Blog"}
+  </button>
+</div>
       </form>
 
       {/* Global styles for Quill editor */}

@@ -2,7 +2,7 @@ import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useFetchRelatedBlogsQuery, useFetchBlogsQuery } from '../../../Redux/features/blogs/blogApi';
 import { useSelector } from 'react-redux';
-import noImage from '/Users/user/Desktop/nnrnhub/FrontEnd/src/assets/images.png';
+import noImage from '../../../assets/images.png';
 
 // Category colors reused from Blogs for consistency
 const categoryColors = {
