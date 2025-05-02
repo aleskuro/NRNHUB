@@ -190,194 +190,194 @@ const Navbar = () => {
 
       {/* Desktop Navigation */}
       <nav
-        className="hidden md:flex w-full items-center px-35 transition-all duration-500 hover:bg-[length:200%_auto] hover:bg-right bg-white"
-        style={{
-          backgroundSize: '200% auto',
-          backgroundPosition: 'left center',
-        }}
+  className="hidden md:flex w-full justify-between items-center px-4 lg:px-18 transition-all duration-500 hover:bg-[length:200%_auto] hover:bg-right bg-white"
+  style={{
+    backgroundSize: '200% auto',
+    backgroundPosition: 'left center',
+  }}
+>
+  {/* Logo and Title on far left, pushed further right on large desktops */}
+  <div className="flex-shrink-0 ml-2 lg:ml-4 xl:ml-24">
+    <NavLink to="/" className="flex items-center gap-2">
+      <img
+        src={logo}
+        alt="NRNHUB Logo"
+        className="h-12 transform transition-transform duration-300 hover:scale-105"
+      />
+      <span
+        className="text-xl lg:text-2xl xl:text-3xl font-bold text-black hover:text-[#C4A1FF] transition-colors duration-300"
+        style={{ fontFamily: '"Baumans", sans-serif' }}
       >
-        {/* Logo and Title moved to far left */}
-        <div className="mr-4 ml-15">
-          <NavLink to="/" className="flex items-center gap-2">
-            <img
-              src={logo}
-              alt="NRNHUB Logo"
-              className="h-12 transform transition-transform duration-300 hover:scale-105"
-            />
-            <span
-              className="text-3xl font-bold text-black hover:text-[#C4A1FF] transition-colors duration-300"
-              style={{ fontFamily: '"Baumans", sans-serif' }}
+        NRNHUB
+      </span>
+    </NavLink>
+  </div>
+
+  {/* Center navigation links */}
+  <div className="flex-1 flex justify-center px-2 lg:px-4">
+    <ul className="flex flex-wrap gap-1 lg:gap-2">
+      {Navlists.map((list, index) => (
+        <li key={index} className="relative whitespace-nowrap">
+          {list.dropdown ? (
+            <div
+              onMouseEnter={() => handleMouseEnter(list.name)}
+              onMouseLeave={() => handleMouseLeave(list.name)}
             >
-              NRNHUB
-            </span>
-          </NavLink>
-        </div>
-
-        <div className="flex-1 flex justify-center">
-          <ul className="flex gap-2">
-            {Navlists.map((list, index) => (
-              <li key={index} className="relative">
-                {list.dropdown ? (
-                  <div
-                    onMouseEnter={() => handleMouseEnter(list.name)}
-                    onMouseLeave={() => handleMouseLeave(list.name)}
-                  >
-                    <NavLink
-                      to={list.path}
-                      className={({ isActive }) =>
-                        `inline-block px-4 py-2 text-lg font-bold bg-white text-black hover:text-[#C4A1FF] rounded-md transition-all duration-300 ${
-                          isActive ? 'text-[#C4A1FF]' : ''
-                        }`
-                      }
-                    >
-                      {list.name} <span className="ml-2 text-sm">▼</span>
-                    </NavLink>
-                    <div
-                      className={`absolute left-0 mt-2 w-96 bg-white border border-gray-100 rounded-lg shadow-xl z-10 transition-all duration-300 ease-in-out ${
-                        dropdowns[list.name]?.visible
-                          ? 'opacity-100 pointer-events-auto translate-y-0'
-                          : 'opacity-0 pointer-events-none -translate-y-2'
-                      }`}
-                    >
-                      {list.name === 'BLOG' && (
-                        <div className="p-5 border-b border-gray-100">
-                          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                            Latest Blogs
-                          </h3>
-                          {isLoading ? (
-                            <div className="text-center text-gray-600 text-base">Loading...</div>
-                          ) : latestBlogs.length > 0 ? (
-                            latestBlogs.map((blog) => (
-                              <NavLink
-                                key={blog._id}
-                                to={`/blogs/${blog._id}`}
-                                className="flex gap-4 p-3 hover:bg-gray-50 rounded-md transition-all duration-300 group"
-                                onClick={() => window.scrollTo(0, 0)}
-                              >
-                                <img
-                                  src={blog.image ? blog.image.url : blog.coverImg}
-                                  alt={blog.title}
-                                  className="w-16 h-16 object-cover rounded group-hover:scale-105 transition-transform"
-                                  onError={(e) => (e.target.src = noImage)}
-                                />
-                                <div>
-                                  <h4 className="text-base font-medium text-gray-900 group-hover:text-[#C4A1FF]">
-                                    {truncateTitle(blog.title)}
-                                  </h4>
-                                  <span className="text-sm text-[#C4A1FF]">
-                                    {blog.category || 'General'}
-                                  </span>
-                                </div>
-                              </NavLink>
-                            ))
-                          ) : (
-                            <div className="text-center text-gray-600 text-base">
-                              No blogs available.
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      <ul>
-                        {list.dropdown.map((item, idx) => (
-                          <li key={idx}>
-                            <NavLink
-                              to={item.path}
-                              className={({ isActive }) =>
-                                `block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#C4A1FF] transition-all duration-200 ${
-                                  isActive ? 'text-[#C4A1FF]' : ''
-                                }`
-                              }
-                              onClick={() => window.scrollTo(0, 0)}
-                            >
-                              {item.name}
-                            </NavLink>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+              <NavLink
+                to={list.path}
+                className={({ isActive }) =>
+                  `inline-block px-2 lg:px-4 py-2 text-sm lg:text-base xl:text-lg font-bold bg-white text-black hover:text-[#C4A1FF] rounded-md transition-all duration-300 ${
+                    isActive ? 'text-[#C4A1FF]' : ''
+                  }`
+                }
+              >
+                {list.name} <span className="ml-1 text-xs">▼</span>
+              </NavLink>
+              <div
+                className={`absolute left-0 mt-2 w-96 bg-white border border-gray-100 rounded-lg shadow-xl z-10 transition-all duration-300 ease-in-out ${
+                  dropdowns[list.name]?.visible
+                    ? 'opacity-100 pointer-events-auto translate-y-0'
+                    : 'opacity-0 pointer-events-none -translate-y-2'
+                }`}
+              >
+                {list.name === 'BLOG' && (
+                  <div className="p-5 border-b border-gray-100">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                      Latest Blogs
+                    </h3>
+                    {isLoading ? (
+                      <div className="text-center text-gray-600 text-base">Loading...</div>
+                    ) : latestBlogs.length > 0 ? (
+                      latestBlogs.map((blog) => (
+                        <NavLink
+                          key={blog._id}
+                          to={`/blogs/${blog._id}`}
+                          className="flex gap-4 p-3 hover:bg-gray-50 rounded-md transition-all duration-300 group"
+                          onClick={() => window.scrollTo(0, 0)}
+                        >
+                          <img
+                            src={blog.image ? blog.image.url : blog.coverImg}
+                            alt={blog.title}
+                            className="w-16 h-16 object-cover rounded group-hover:scale-105 transition-transform"
+                            onError={(e) => (e.target.src = noImage)}
+                          />
+                          <div>
+                            <h4 className="text-base font-medium text-gray-900 group-hover:text-[#C4A1FF]">
+                              {truncateTitle(blog.title)}
+                            </h4>
+                            <span className="text-sm text-[#C4A1FF]">
+                              {blog.category || 'General'}
+                            </span>
+                          </div>
+                        </NavLink>
+                      ))
+                    ) : (
+                      <div className="text-center text-gray-600 text-base">
+                        No blogs available.
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <NavLink
-                    to={list.path}
-                    className={({ isActive }) =>
-                      `inline-block px-4 py-2 text-lg font-bold bg-white text-black hover:text-[#C4A1FF] rounded-md transition-all duration-300 ${
-                        isActive ? 'text-[#C4A1FF]' : ''
-                      }`
-                    }
-                    onClick={() => window.scrollTo(0, 0)}
-                  >
-                    {list.name}
-                  </NavLink>
                 )}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Auth Section on far right */}
-        <div className="flex items-center gap-2 mr-15">
-          {!user ? (
-            <>
-              <NavLink
-                to="/register"
-                className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold shadow-md hover:scale-105 transition-transform"
-                onClick={() => window.scrollTo(0, 0)}
-              >
-                REGISTER
-              </NavLink>
-              <NavLink
-                to="/login"
-                className="inline-block px-5 py-2 text-lg font-bold uppercase border-1 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
-                onClick={() => window.scrollTo(0, 0)}
-              >
-                Login
-              </NavLink>
-            </>
-          ) : (
-            <div className="relative mr-4" ref={profileRef}>
-              <button
-                className="focus:outline-none"
-                onClick={toggleProfileDropdown}
-                aria-label="User Profile"
-              >
-                <img
-                  src={commentor}
-                  alt="User"
-                  className="w-10 h-10 rounded-full border-2 border-[#C4A1FF] shadow-md hover:scale-105 hover:rotate-6 transition-all duration-300 ease-in-out cursor-pointer animate-[pulse-border_2s_infinite]"
-                />
-              </button>
-              {dropdowns.profile?.visible && (
-                <div
-                  className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl z-50 transition-all duration-300 ease-in-out"
-                >
-                  <div className="px-4 py-3 text-base font-medium text-gray-900 border-b border-gray-100">
-                    👋 {user.username || 'User'}
-                  </div>
-                  {user.role === 'admin' && (
-                    <NavLink
-                      to="/dashboard"
-                      className="block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#C4A1FF] transition-all duration-200 cursor-pointer"
-                      onClick={() => {
-                        setDropdowns((prev) => ({ ...prev, profile: { visible: false } }));
-                        window.scrollTo(0, 0);
-                      }}
-                    >
-                      Dashboard
-                    </NavLink>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
-                  >
-                    Logout
-                  </button>
-                </div>
-              )}
+                <ul>
+                  {list.dropdown.map((item, idx) => (
+                    <li key={idx}>
+                      <NavLink
+                        to={item.path}
+                        className={({ isActive }) =>
+                          `block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#C4A1FF] transition-all duration-200 ${
+                            isActive ? 'text-[#C4A1FF]' : ''
+                          }`
+                        }
+                        onClick={() => window.scrollTo(0, 0)}
+                      >
+                        {item.name}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
+          ) : (
+            <NavLink
+              to={list.path}
+              className={({ isActive }) =>
+                `inline-block px-2 lg:px-4 py-2 text-sm lg:text-base xl:text-lg font-bold bg-white text-black hover:text-[#C4A1FF] rounded-md transition-all duration-300 ${
+                  isActive ? 'text-[#C4A1FF]' : ''
+                }`
+              }
+              onClick={() => window.scrollTo(0, 0)}
+            >
+              {list.name}
+            </NavLink>
           )}
-        </div>
-      </nav>
+        </li>
+      ))}
+    </ul>
+  </div>
 
+  {/* Auth section on far right, pushed further left on large desktops */}
+  <div className="flex-shrink-0 flex items-center gap-2 mr-2 lg:mr-4 xl:mr-24">
+    {!user ? (
+      <>
+        <NavLink
+          to="/register"
+          className="px-2 lg:px-4 py-2 rounded-lg bg-red-500 text-white text-sm lg:text-base font-semibold shadow-md hover:scale-105 transition-transform"
+          onClick={() => window.scrollTo(0, 0)}
+        >
+          REGISTER
+        </NavLink>
+        <NavLink
+          to="/login"
+          className="inline-block px-3 lg:px-5 py-2 text-sm lg:text-base xl:text-lg font-bold uppercase border-1 border-white bg-transparent rounded-lg hover:bg-white/20 hover:scale-105 transition-all duration-300"
+          onClick={() => window.scrollTo(0, 0)}
+        >
+          Login
+        </NavLink>
+      </>
+    ) : (
+      <div className="relative mr-2 lg:mr-4" ref={profileRef}>
+        <button
+          className="focus:outline-none"
+          onClick={toggleProfileDropdown}
+          aria-label="User Profile"
+        >
+          <img
+            src={commentor}
+            alt="User"
+            className="w-10 h-10 rounded-full border-2 border-[#C4A1FF] shadow-md hover:scale-105 hover:rotate-6 transition-all duration-300 ease-in-out cursor-pointer animate-[pulse-border_2s_infinite]"
+          />
+        </button>
+        {dropdowns.profile?.visible && (
+          <div
+            className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl z-50 transition-all duration-300 ease-in-out"
+          >
+            <div className="px-4 py-3 text-base font-medium text-gray-900 border-b border-gray-100">
+              👋 {user.username || 'User'}
+            </div>
+            {user.role === 'admin' && (
+              <NavLink
+                to="/dashboard"
+                className="block px-4 py-3 text-base font-medium text-gray-900 hover:bg-gray-50 hover:text-[#C4A1FF] transition-all duration-200 cursor-pointer"
+                onClick={() => {
+                  setDropdowns((prev) => ({ ...prev, profile: { visible: false } }));
+                  window.scrollTo(0, 0);
+                }}
+              >
+                Dashboard
+              </NavLink>
+            )}
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200 cursor-pointer"
+            >
+              Logout
+            </button>
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</nav>
       {/* Mobile Navigation */}
       {menuOpen && (
         <nav className="md:hidden px-4 pb-6">
