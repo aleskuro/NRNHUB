@@ -26,6 +26,7 @@ import AdminAdvertisers from "../src/pages/admin/Messages/AdminMessages/AdminAdv
 import AdminBookACall from "../src/pages/admin/Messages/AdminMessages/AdminBookACall";
 import BlogAnalyticsDashboard from "../src/pages/admin/Dashboard/BlogAnalyticsDashboard";
 import AdminSubscribers from "../src/pages/admin/Messages/AdminMessages/AdminSubscribers";
+import UserAnalytics from "../src/pages/admin/Dashboard/UserAnalytics";
 
 const router = createBrowserRouter([
   {
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
           {path: "Booked" , element: <AdminBookACall />},
           {path: "Blogs-Analytics" , element: <BlogAnalyticsDashboard />},
           {path: "Subscribers" , element: <AdminSubscribers />},
+          {path: "User-Analytics" , element: <UserAnalytics />},
         ],
       },
     ],

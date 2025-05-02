@@ -141,6 +141,18 @@ const AdminNavigation = () => {
               >
                 Analytics
               </NavLink>
+
+              <NavLink
+                to="/dashboard/User-Analytics"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+               User
+              </NavLink>
+              
             </li>
           </ul>
         </nav>

@@ -57,7 +57,6 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now,
   },
-  // New fields for tracking login activity
   lastOnline: {
     type: Date,
     default: null,
@@ -78,6 +77,51 @@ const userSchema = new Schema({
       },
     },
   ],
+  sessions: [
+    {
+      startTime: {
+        type: Date,
+        default: Date.now,
+      },
+      duration: {
+        type: Number, // Duration in seconds
+        default: 0,
+      },
+      // _id is automatically included as ObjectId; no need to specify
+    },
+  ],
+  activity: {
+    features: {
+      profileViews: {
+        type: Number,
+        default: 0,
+      },
+      posts: {
+        type: Number,
+        default: 0,
+      },
+      comments: {
+        type: Number,
+        default: 0,
+      },
+      likes: {
+        type: Number,
+        default: 0,
+      },
+      shares: {
+        type: Number,
+        default: 0,
+      },
+    },
+    social: {
+      type: Number,
+      default: 0,
+    },
+    content: {
+      type: Number,
+      default: 0,
+    },
+  },
 });
 
 // Hash password before saving
