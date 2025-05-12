@@ -21,7 +21,6 @@ console.error = (...args) => {
   originalConsoleError(...args);
 };
 
-// Apply suppression early to catch Quill initialization warnings
 const originalConsoleWarn = console.warn;
 console.warn = (...args) => {
   if (args[0].includes("DOMNodeInserted mutation event")) {
@@ -44,7 +43,7 @@ Font.whitelist = [
   "Raleway",
   "Rubik",
   "Baumans",
-  "Lora", // Replaced LuxuriousRoman with Lora
+  "Lora",
 ];
 ReactQuill.Quill.register(Font, true);
 
@@ -57,28 +56,34 @@ const AddPost = () => {
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
   const [editorContent, setEditorContent] = useState("");
   const [conclusionContent, setConclusionContent] = useState("");
+  const [showConclusion, setShowConclusion] = useState(false);
   const quillRef = useRef(null);
   const conclusionQuillRef = useRef(null);
+  const categoryRef = useRef(null); // Ref for category input and dropdown
 
+  // Flat category options
   const categoryOptions = [
-    "technology",
-    "travel",
-    "food",
-    "lifestyle",
-    "fashion",
-    "health",
-    "finance",
-    "entertainment",
-    "cars",
-    "general",
+    "LIFESTYLE",
+    "CULTURE",
+    "ENTERTAINMENT",
+    "FOOD",
+    "TRAVEL",
+    "HEALTH",
+    "SPORTS",
+    "ECONOMY",
+    "MARKET",
+    "SMALL BIZ",
+    "REAL ESTATE",
+    "START UP",
+    "GLOBAL",
+    "PERSONAL FINANCE",
   ];
 
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
-  const [PostBlog, { isLoading, isSuccess, isError, error, reset }] =
-    usePostBlogMutation();
+  const [PostBlog, { isLoading, isSuccess, isError, error, reset }] = usePostBlogMutation();
 
-  // Quill editor modules configuration with normalized font names
+  // Quill editor modules configuration
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, 4, 5, 6, false] }],
@@ -101,7 +106,7 @@ const AddPost = () => {
             "Raleway",
             "Rubik",
             "Baumans",
-            "Lora", // Replaced LuxuriousRoman with Lora
+            "Lora",
           ],
         },
       ],
@@ -127,13 +132,27 @@ const AddPost = () => {
     "link",
   ];
 
+  // Handle outside clicks to close suggestions
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (categoryRef.current && !categoryRef.current.contains(event.target)) {
+        setShowCategorySuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   useEffect(() => {
     if (isSuccess) {
       toast.success("Blog post created successfully!");
       resetForm();
       reset();
       setTimeout(() => {
-        navigate("/dashboard/posts");
+        navigate("/");
       }, 2000);
     }
 
@@ -154,6 +173,7 @@ const AddPost = () => {
     setRating(0);
     setEditorContent("");
     setConclusionContent("");
+    setShowConclusion(false);
   };
 
   const handleCategoryChange = (e) => {
@@ -161,8 +181,8 @@ const AddPost = () => {
     setShowCategorySuggestions(true);
   };
 
-  const selectSuggestedCategory = (suggestedCategory) => {
-    setCategory(suggestedCategory);
+  const selectCategory = (selectedCategory) => {
+    setCategory(selectedCategory);
     setShowCategorySuggestions(false);
   };
 
@@ -177,12 +197,16 @@ const AddPost = () => {
         return toast.error("Please provide a cover image URL.");
       }
 
+      if (!category) {
+        return toast.error("Please select a category.");
+      }
+
       const contentBlocks = {
         type: "quill",
         data: editorContent,
       };
 
-      const conclusionBlocks = conclusionContent.trim()
+      const conclusionBlocks = showConclusion && conclusionContent.trim()
         ? {
             type: "quill",
             data: conclusionContent,
@@ -243,7 +267,7 @@ const AddPost = () => {
                   theme="snow"
                   value={editorContent}
                   onChange={(content) => {
-                    console.log("Content editor HTML:", content); // Debug: Log editor output
+                    console.log("Content editor HTML:", content);
                     setEditorContent(content);
                   }}
                   modules={modules}
@@ -254,29 +278,45 @@ const AddPost = () => {
               </div>
             </div>
 
-            {/* Conclusion Editor */}
+            {/* Conclusion Editor with Toggle */}
             <div className="mb-8">
-              <p className="font-semibold text-gray-700 mb-2 text-lg font-[Merriweather]">
-                Conclusion Section
-              </p>
-              <p className="text-sm italic text-gray-500 mb-2 font-[Lato]">
-                Write your conclusion here...
-              </p>
-              <div className="bg-gray-100 rounded-md border border-gray-300">
-                <ReactQuill
-                  ref={conclusionQuillRef}
-                  theme="snow"
-                  value={conclusionContent}
-                  onChange={(content) => {
-                    console.log("Conclusion editor HTML:", content); // Debug: Log editor output
-                    setConclusionContent(content);
-                  }}
-                  modules={modules}
-                  formats={formats}
-                  style={{ height: "200px", fontFamily: "'Nunito', sans-serif" }}
-                  className="bg-white rounded-md"
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  checked={showConclusion}
+                  onChange={() => setShowConclusion(!showConclusion)}
+                  className="mr-2"
+                  id="showConclusion"
                 />
+                <label
+                  htmlFor="showConclusion"
+                  className="font-semibold text-gray-700 text-lg font-[Merriweather]"
+                >
+                  Add Conclusion (Optional)
+                </label>
               </div>
+              {showConclusion && (
+                <>
+                  <p className="text-sm italic text-gray-500 mb-2 font-[Lato]">
+                    Write your conclusion here (optional)...
+                  </p>
+                  <div className="bg-gray-100 rounded-md border border-gray-300">
+                    <ReactQuill
+                      ref={conclusionQuillRef}
+                      theme="snow"
+                      value={conclusionContent}
+                      onChange={(content) => {
+                        console.log("Conclusion editor HTML:", content);
+                        setConclusionContent(content);
+                      }}
+                      modules={modules}
+                      formats={formats}
+                      style={{ height: "200px", fontFamily: "'Nunito', sans-serif" }}
+                      className="bg-white rounded-md"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -300,13 +340,13 @@ const AddPost = () => {
                 <img
                   src={coverImg}
                   alt="Cover Preview"
-                  className="mt-2 w-full h-32 object-cover rounded-md"
+                  className="mt-2 w-full h-48 object-cover rounded-md"
                   onError={() => toast.error("Invalid image URL")}
                 />
               )}
             </div>
 
-            <div className="relative">
+            <div className="relative" ref={categoryRef}>
               <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
                 Category:
               </label>
@@ -315,8 +355,9 @@ const AddPost = () => {
                 value={category}
                 onChange={handleCategoryChange}
                 onFocus={() => setShowCategorySuggestions(true)}
+                onBlur={() => setTimeout(() => setShowCategorySuggestions(false), 100)}
                 className="w-full bg-gray-100 px-4 py-2 focus:outline-none rounded-md border border-gray-300 focus:border-indigo-500 font-[Open_Sans]"
-                placeholder="Technology, Travel, etc."
+                placeholder="e.g., LIFESTYLE, CULTURE, ECONOMY"
                 required
               />
               {showCategorySuggestions && (
@@ -331,7 +372,7 @@ const AddPost = () => {
                       <div
                         key={index}
                         className="px-4 py-2 cursor-pointer hover:bg-gray-100 capitalize font-[Open_Sans]"
-                        onClick={() => selectSuggestedCategory(option)}
+                        onClick={() => selectCategory(option)}
                       >
                         {option}
                       </div>
@@ -384,24 +425,20 @@ const AddPost = () => {
             </div>
           </div>
         </div>
-        <br></br>
-        <br></br>
-        <br></br>
-        <br></br>
+
         <div className="mt-8">
-  <button
-    type="submit"
-    disabled={isLoading}
-    className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 font-[Rubik] tracking-wide transition-colors duration-300"
-  >
-    {isLoading ? "Adding New Blog..." : "Add New Blog"}
-  </button>
-</div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-indigo-400 font-[Rubik] tracking-wide transition-colors duration-300"
+          >
+            {isLoading ? "Adding New Blog..." : "Add New Blog"}
+          </button>
+        </div>
       </form>
 
       {/* Global styles for Quill editor */}
       <style>{`
-        /* Custom styles for the editor */
         .ql-editor {
           font-family: 'Nunito', sans-serif;
         }
@@ -414,7 +451,6 @@ const AddPost = () => {
         .ql-editor p {
           font-family: 'Nunito', sans-serif;
         }
-        /* Font family classes for Quill font dropdown */
         .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="Montserrat"]::before,
         .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="Montserrat"]::before {
           font-family: 'Montserrat', sans-serif;
@@ -475,7 +511,6 @@ const AddPost = () => {
           font-family: 'Lora', serif;
           content: 'Lora';
         }
-        /* Font classes for Quill editor content */
         .ql-font-Montserrat {
           font-family: 'Montserrat', sans-serif !important;
         }

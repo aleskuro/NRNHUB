@@ -23,7 +23,7 @@ const SearchBlog = ({ search, handleSearchChange, handleSearch }) => {
       >
         Search
       </button>
-    </div>
+    </div> 
   );
 };
 

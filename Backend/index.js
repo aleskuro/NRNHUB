@@ -1,52 +1,40 @@
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-require('dotenv').config();
-const path = require('path');
 const mongoose = require('mongoose');
+const path = require('path');
 const fs = require('fs');
-
-// Increase EventEmitter max listeners
-const EventEmitter = require('events');
-EventEmitter.defaultMaxListeners = 15;
-
-// Routes
-  const subscriberRoutes = require('./Src/routes/subscriber.routes');
+require('dotenv').config();
+const authRoutes = require('./Src/routes/auth.user.route');
+const callRoutes = require('./Src/routes/call.routes');
+const eventRoutes = require('./Src/routes/event.routes');
 const blogRoutes = require('./Src/routes/blog.routes');
 const commentRoutes = require('./Src/routes/comment.routes');
-const authRoutes = require('./Src/routes/auth.user.route');
-const adsRoutes = require('./Src/routes/ad.routes');
-const coverRoutes = require('./Src/routes/coverRoutes');
-const callRoutes = require('./Src/routes/call.routes');
+const subscriberRoutes = require('./Src/routes/subscriber.routes');
 const analyticsRoutes = require('./Src/routes/analyticsRoutes');
-
+const videoRoutes = require('./Src/routes/video.routes'); // Add video routes
+const coverRoutes = require('./Src/routes/coverRoutes'); 
 const port = process.env.PORT || 5000;
 
 // Middleware
 app.use(express.json());
-app.use(cookieParser());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173', 'http://localhost:3000', 'http://13.127.173.136:5000'];
-
 app.use(
   cors({
-    origin: true,
-    credentials: true,
+    origin: 'http://localhost:5173',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
   })
 );
 
 // Ensure uploads directory exists
 const uploadsPath = path.join(__dirname, 'Src', 'Uploads');
 if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(UploadsPath, { recursive: true });
+  fs.mkdirSync(uploadsPath, { recursive: true });
   console.log(`Created directory: ${uploadsPath}`);
 }
 
@@ -60,16 +48,16 @@ app.get('/api/test', (req, res) => {
 });
 
 // Use routes
-app.use('/api/subscribers', subscriberRoutes);
-app.use('/api/cover', coverRoutes);
+app.use('/api/events', eventRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/blogs', blogRoutes);
-app.use('/api/ads', adsRoutes);
 app.use('/api/calls', callRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/videos', videoRoutes); // Add video routes
+app.use('/api/cover', coverRoutes);
 
-// MongoDB Connection
 async function main() {
   try {
     await mongoose.connect(process.env.MONGODB_URL);
@@ -80,7 +68,6 @@ async function main() {
   }
 }
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
   try {
     await mongoose.connection.close();
@@ -92,13 +79,11 @@ process.on('SIGINT', async () => {
   }
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ message: 'Something went wrong!', error: err.message });
 });
 
-// Start server
 main().then(() => {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);

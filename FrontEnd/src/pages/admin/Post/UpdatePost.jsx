@@ -6,7 +6,9 @@ import Header from '@editorjs/header';
 import List from '@editorjs/list';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { useFetchBlogByIdQuery, useUpdateBlogMutation } from "../../../Redux/features/blogs/blogAPI";
+// import { useFetchBlogByIdQuery, useUpdateBlogMutation } from "../../../Redux/features/blogs/blogAPI";
+import { useFetchBlogByIdQuery, useUpdateBlogMutation } from "../../../Redux/features/blogs/blogApi";
+
 
 const UpdatePost = () => {
     const { id } = useParams();

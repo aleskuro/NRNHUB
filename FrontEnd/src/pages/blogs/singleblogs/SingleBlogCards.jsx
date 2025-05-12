@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { formatDate } from '../../../../utilis/dateFormater';
 import { Share2, Facebook, X, MessageCircle, Mail, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react';
 
-// Category colors mapping (consistent with Category.jsx and CategoryNav.jsx)
+// Category colors mapping
 const categoryColors = {
   technology: 'bg-blue-600',
   travel: 'bg-emerald-600',
@@ -16,9 +16,10 @@ const categoryColors = {
   cars: 'bg-indigo-600',
   general: 'bg-[#883FFF]',
   sasa: 'bg-purple-600',
+  sports: 'bg-blue-600', // Added for SPORTS category (matches Sports.jsx)
 };
 
-// Parse content helper function (works for both content and conclusion)
+// Parse content helper function (unchanged)
 const parseContent = (contentObj, type = 'content') => {
   try {
     if (!contentObj) {
@@ -26,7 +27,6 @@ const parseContent = (contentObj, type = 'content') => {
       return `<p>No ${type} available.</p>`;
     }
 
-    // Handle different content formats
     if (typeof contentObj === 'string') {
       console.log(`${type} is string:`, contentObj);
       return contentObj;
@@ -34,7 +34,6 @@ const parseContent = (contentObj, type = 'content') => {
       console.log(`${type} is quill format:`, contentObj.data);
       return contentObj.data;
     } else if (contentObj.blocks) {
-      // Legacy EditorJS format support
       console.warn(`EditorJS ${type} format detected - consider migrating this content`);
       return `<p>This ${type} was created with the old editor. Please consider updating it.</p>`;
     } else {
@@ -47,7 +46,7 @@ const parseContent = (contentObj, type = 'content') => {
   }
 };
 
-// Calculate reading time based on content
+// Calculate reading time (unchanged)
 const calculateReadingTime = (content) => {
   const WPM = 238;
 
@@ -57,7 +56,6 @@ const calculateReadingTime = (content) => {
       return '1 min read';
     }
 
-    // Extract text from HTML content
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = typeof content === 'string' ? content : 
                         content.data ? content.data : '';
@@ -75,7 +73,6 @@ const calculateReadingTime = (content) => {
 const SingleBlogCards = ({ blog }) => {
   const { adImages, adLinks, bottomAdVisible } = useSelector((state) => state.ads);
 
-  // Debugging log
   console.log('SingleBlogCards received blog:', blog);
 
   if (!blog || !blog.title) {
@@ -91,7 +88,6 @@ const SingleBlogCards = ({ blog }) => {
 
   const { title, createdAt, author, content, conclusion, coverImg, category } = blog;
 
-  // Debugging conclusion
   console.log('Conclusion data:', conclusion);
 
   const readingTime = useMemo(() => {
@@ -113,30 +109,22 @@ const SingleBlogCards = ({ blog }) => {
     window.open(`https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`, '_blank');
   };
 
-  // Fixed email share function that works with native mail clients
   const shareToEmail = () => {
     try {
       const subject = encodeURIComponent(`Check out this blog: ${shareTitle}`);
       const body = encodeURIComponent(`I found this great blog post: ${shareTitle}\n\nRead it here: ${shareUrl}`);
       
-      // Use the Windows-specific protocol when available
       if (navigator.userAgent.indexOf('Windows') !== -1) {
-        // Try to use Windows Mail app protocol
         const mailtoLink = `ms-mail:?subject=${subject}&body=${body}`;
-        
-        // Create and click a hidden anchor
         const link = document.createElement('a');
         link.href = mailtoLink;
         link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
-        
-        // Remove the link after a short delay
         setTimeout(() => {
           document.body.removeChild(link);
         }, 100);
       } else {
-        // Fallback to standard mailto for other platforms
         window.location.href = `mailto:?subject=${subject}&body=${body}`;
       }
     } catch (error) {
@@ -159,7 +147,6 @@ const SingleBlogCards = ({ blog }) => {
 
   const authorName = author?.username || author?.name || (typeof author === 'string' ? author : author?.email) || 'Unknown Author';
 
-  // Check if conclusion exists and has content
   const hasConclusion = conclusion && 
     ((conclusion.data && conclusion.data.trim() !== '') || 
      (typeof conclusion === 'string' && conclusion.trim() !== ''));
@@ -169,10 +156,10 @@ const SingleBlogCards = ({ blog }) => {
       <div className="mb-8">
         <span
           className={`inline-block px-3 py-1 rounded-md text-base font-medium text-white mb-4 ${
-            categoryColors[category?.toLowerCase()] || categoryColors.travel
+            categoryColors[category?.toLowerCase()] || categoryColors.general
           }`}
         >
-          {category || 'travel'}
+          {category || 'general'}
         </span>
         <h1 className="text-3xl md:text-4xl font-medium mb-4">{title}</h1>
         <div className="flex flex-wrap items-center gap-2 text-base mb-1">
@@ -242,67 +229,51 @@ const SingleBlogCards = ({ blog }) => {
         <div dangerouslySetInnerHTML={{ __html: parseContent(content, 'content') }} />
       </div>
 
-      {/* Collapsible Key Takeaways Section */}
-      <div className="mt-12 mb-8">
-        <div className="border border-[#883FFF] rounded-lg overflow-hidden">
-          {/* Key Takeaways Header with Toggle */}
-          {(() => {
-            const [isExpanded, setIsExpanded] = useState(true);
-            return (
-              <>
-                <div 
-                  className="flex items-center justify-between p-4 bg-purple-50 cursor-pointer"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                >
-                  <div className="flex items-center">
-                    <span className="text-[#883FFF] font-bold text-lg mr-2">✦</span>
-                    <h2 className="text-lg font-medium">Key Takeaways</h2>
+      {/* Collapsible Key Takeaways Section - Render only if hasConclusion is true */}
+      {hasConclusion && (
+        <div className="mt-12 mb-8">
+          <div className="border border-[#883FFF] rounded-lg overflow-hidden">
+            {(() => {
+              const [isExpanded, setIsExpanded] = useState(true);
+              return (
+                <>
+                  <div 
+                    className="flex items-center justify-between p-4 bg-purple-50 cursor-pointer"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                  >
+                    <div className="flex items-center">
+                      <span className="text-[#883FFF] font-bold text-lg mr-2">✦</span>
+                      <h2 className="text-lg font-medium">Key Takeaways</h2>
+                    </div>
+                    {isExpanded ? 
+                      <ChevronUp className="text-[#883FFF]" size={20} /> : 
+                      <ChevronDown className="text-[#883FFF]" size={20} />
+                    }
                   </div>
-                  {isExpanded ? 
-                    <ChevronUp className="text-[#883FFF]" size={20} /> : 
-                    <ChevronDown className="text-[#883FFF]" size={20} />
-                  }
-                </div>
-                
-                {/* Collapsible Content */}
-                {isExpanded && (
-                  <div className="p-4">
-                    {hasConclusion ? (
+                  
+                  {isExpanded && (
+                    <div className="p-4">
                       <div 
                         className="quill-content prose max-w-none" 
                         dangerouslySetInnerHTML={{ __html: parseContent(conclusion, 'conclusion') }} 
                       />
-                    ) : (
-                      <ul className="list-disc pl-6 space-y-3">
-                        <li className="text-gray-800">
-                          Despite being labeled unsafe for tourists by many countries, Libya continues to attract close to 100,000 international visitors annually, with some travelers joining the "danger tourism" trend.
-                        </li>
-                        <li className="text-gray-800">
-                          The US and UK governments have issued the highest travel advisories against traveling to Libya due to concerns of crime, terrorism, civil unrest, and armed conflict.
-                        </li>
-                        <li className="text-gray-800">
-                          Travelers like Daniel Pinto, who describe themselves as "danger tourists," are drawn to mysterious and risky destinations like Libya, despite the potential dangers and warnings from official advisories.
-                        </li>
-                      </ul>
-                    )}
-                    
-                    {/* Divider and See a mistake text */}
-                    <hr className="my-4 border-gray-200" />
-                    <div className="text-right">
-                      <a 
-                        href="http://localhost:5173/messages" 
-                        className="text-xs text-gray-500 hover:text-[#883FFF] transition-colors inline-flex items-center"
-                      >
-                        <span>See a mistake? Let us know.</span>
-                      </a>
+                      <hr className="my-4 border-gray-200" />
+                      <div className="text-right">
+                        <a 
+                          href="http://localhost:5173/messages" 
+                          className="text-xs text-gray-500 hover:text-[#883FFF] transition-colors inline-flex items-center"
+                        >
+                          <span>See a mistake? Let us know.</span>
+                        </a>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </>
-            );
-          })()}
+                  )}
+                </>
+              );
+            })()}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-8">
         {bottomAdVisible && (
@@ -332,8 +303,6 @@ const SingleBlogCards = ({ blog }) => {
           </div>
         )}
       </div>
-      
-
     </div>
   );
 };

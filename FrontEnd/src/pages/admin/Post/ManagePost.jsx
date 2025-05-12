@@ -2,7 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { formatDate } from '../../../../utilis/dateFormater';
 import { MdModeEdit } from 'react-icons/md';
-import { useFetchBlogsQuery, useDeleteBlogMutation } from '../../../Redux/features/blogs/blogAPI';
+// import { useFetchBlogsQuery, useDeleteBlogMutation } from '../../../Redux/features/blogs/blogAPI';
+import { useFetchBlogsQuery, useDeleteBlogMutation } from "../../../Redux/features/blogs/blogApi";
+
 
 const ManagePost = () => {
   const { data: blogs = [], error, isLoading, refetch } = useFetchBlogsQuery({ search: '', category: '', location: '' });

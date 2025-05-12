@@ -2,7 +2,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const uploadDir = path.join(__dirname, '..', 'Uploads', 'ads');
+const uploadDir = path.join(__dirname, '..', 'Uploads', 'BlogCover'); // Use Src/Uploads/BlogCover
 console.log(`Resolved uploadDir: ${uploadDir}`);
 
 try {

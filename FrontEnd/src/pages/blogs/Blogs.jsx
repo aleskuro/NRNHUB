@@ -1,12 +1,32 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import SearchBlog from './SearchBlog';
 import { useFetchBlogsQuery } from '../../Redux/features/blogs/blogApi';
 import noImage from '../../assets/images.png';
 import { ChevronLeft, ChevronRight, Clock, BookOpen, TrendingUp, Star, Heart, Share2 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+
+// Updated SearchBlog Component
+const SearchBlog = ({ search, handleSearchChange, handleSearch }) => {
+  return (
+    <div className="flex flex-col sm:flex-row gap-2 max-w-4xl mx-auto">
+      <input
+        type="text"
+        placeholder="Search articles..."
+        value={search}
+        onChange={handleSearchChange}
+        className="flex-1 px-4 py-3 rounded-lg bg-white border-2 border-black focus:outline-none focus:ring-2 focus:ring-[#883FFF]/50 text-gray-800"
+      />
+      <button
+        onClick={handleSearch}
+        className="w-full sm:w-auto px-6 py-3 bg-[#883FFF] text-white rounded-lg hover:bg-[#7623EA] transition-colors duration-300 font-medium"
+      >
+        Search
+      </button>
+    </div>
+  );
+};
 
 // Reusable Blog Card Component
 const BlogCard = ({ blog, trackBlogInteraction, truncateTitle, getReadTime, getAuthorName, getCategoryColor, formatDate }) => (
@@ -246,6 +266,7 @@ const Blogs = () => {
       return 3;
     }
   };
+
   const getAuthorName = (author) => {
     if (!author) return 'Editor';
     if (typeof author === 'string') return author;
@@ -382,13 +403,6 @@ const Blogs = () => {
                   <p className="text-lg md:text-xl text-purple-100 mb-8 max-w-xl leading-relaxed">
                     Explore insights, ideas, and inspiration from our community of thought leaders and experts.
                   </p>
-                  <div className="max-w-lg">
-                    <SearchBlog
-                      search={search}
-                      handleSearchChange={handleSearchChange}
-                      handleSearch={handleSearch}
-                    />
-                  </div>
                 </div>
                 <div className="md:w-5/12 hidden md:block">
                   <div className="relative">
@@ -412,8 +426,18 @@ const Blogs = () => {
               </div>
             </div>
           </div>
+          {/* Search Section Below Hero Banner */}
+          <div className="container mx-auto px-4 py-8">
+            <div className="max-w-4xl mx-auto">
+              <SearchBlog
+                search={search}
+                handleSearchChange={handleSearchChange}
+                handleSearch={handleSearch}
+              />
+            </div>
+          </div>
           {!query.search && (
-            <div className="container mx-auto px-4 mb-8 mt-8">
+            <div className="container mx-auto px-4 mb-8">
               <div className="flex overflow-x-auto pb-2 gap-2 border-b border-gray-200">
                 <button
                   className={`px-5 py-3 text-base font-semibold rounded-t-lg whitespace-nowrap transition-colors ${
@@ -422,7 +446,7 @@ const Blogs = () => {
                   onClick={() => setActiveTab('new')}
                 >
                   <div className="flex items-center">
-                    <Clock size={18} className="mr-2 size-7" />
+                    <Clock size={18} className="mr-2" />
                     New Releases
                   </div>
                 </button>
@@ -433,7 +457,7 @@ const Blogs = () => {
                   onClick={() => setActiveTab('popular')}
                 >
                   <div className="flex items-center">
-                    <TrendingUp size={18} className="mr-2 size-7" />
+                    <TrendingUp size={18} className="mr-2" />
                     Popular
                   </div>
                 </button>
@@ -444,7 +468,7 @@ const Blogs = () => {
                   onClick={() => setActiveTab('suggestions')}
                 >
                   <div className="flex items-center">
-                    <Star size={18} className="mr-2 size-7" />
+                    <Star size={18} className="mr-2" />
                     Suggestions
                   </div>
                 </button>
@@ -775,14 +799,14 @@ const Blogs = () => {
                 end={12}
                 {...blogGridProps}
               />
-              {renderAdSpace('blogsHome1', 'blogsHome1')}
+              {renderAdSpace('blogsHome1', 'Fourth')}
               <BlogGrid
                 blogs={query.search ? blogs : activeTab === 'new' ? newReleases : activeTab === 'popular' ? popular : suggestions}
                 start={12}
                 end={15}
                 {...blogGridProps}
               />
-              {renderAdSpace('blogsHome2', 'Home2')}
+              {renderAdSpace('blogsHome2', 'Fifth')}
               <BlogGrid
                 blogs={query.search ? blogs : activeTab === 'new' ? newReleases : activeTab === 'popular' ? popular : suggestions}
                 start={15}
@@ -846,6 +870,6 @@ const Blogs = () => {
       `}</style>
     </div>
   );
+};
 
-}
 export default Blogs;

@@ -152,7 +152,36 @@ const AdminNavigation = () => {
               >
                User
               </NavLink>
-              
+              <NavLink
+                to="/dashboard/Create-form"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+               Create Form
+              </NavLink>
+              <NavLink
+                to="/dashboard/Form-data"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+               Form Data
+              </NavLink>
+              <NavLink
+                to="/dashboard/Upload-Video"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+               Upload Video
+              </NavLink>
             </li>
           </ul>
         </nav>
