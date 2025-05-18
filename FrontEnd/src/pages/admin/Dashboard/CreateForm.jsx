@@ -5,6 +5,9 @@ import { toast } from 'react-toastify';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const CreateForm = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -39,7 +42,7 @@ const CreateForm = () => {
     }
     setIsSubmitting(true);
     try {
-      await axios.post('http://localhost:5000/api/events/create', formData);
+      await axios.post(`${API_URL}/api/events/create`, formData);
       toast.success('Event created successfully');
       navigate('/events');
     } catch (error) {

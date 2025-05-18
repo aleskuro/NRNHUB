@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
-
+import { useRegisterUserMutation } from '../../Redux/features/auth/authAPI';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../Redux/features/auth/authSlice';
 
 const Register = () => {
-  
-  
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -17,6 +17,8 @@ const Register = () => {
   const [message, setMessage] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [registerUser, { isLoading, error }] = useRegisterUserMutation();
   const [windowSize, setWindowSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -43,48 +45,65 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Password validation
+    setMessage(''); // Clear previous messages
+
+    // Client-side validation
+    if (!formData.email || !formData.username || !formData.password || !formData.confirmPassword || !formData.birthdate || !formData.gender) {
+      setMessage('Please fill in all fields.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setMessage('Please enter a valid email address.');
+      return;
+    }
+    if (formData.username.length < 3) {
+      setMessage('Username must be at least 3 characters long.');
+      return;
+    }
     if (formData.password.length < 8) {
-      setMessage('Password must be at least 8 characters long');
+      setMessage('Password must be at least 8 characters long.');
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      setMessage('Passwords do not match');
+      setMessage('Passwords do not match.');
+      return;
+    }
+    // Optional: Validate birthdate (e.g., user must be at least 13 years old)
+    const birthYear = new Date(formData.birthdate).getFullYear();
+    if (new Date().getFullYear() - birthYear < 13) {
+      setMessage('You must be at least 13 years old to register.');
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      }); 
-      const data = await response.json();
-      if (response.ok) {
-        setMessage('Registration successful!');
-        setIsRegistered(true);
-        // Simulate default user settings
-        localStorage.setItem(
-          'user',
-          JSON.stringify({
-            username: formData.username,
-            settings: { theme: 'light', notifications: true },
-          })
-        );
-        setTimeout(() => navigate('/login'), 3000);
+      const { confirmPassword, ...payload } = formData; // Exclude confirmPassword from API payload
+      const response = await registerUser(payload).unwrap();
+      const { token, user } = response;
+
+      // Store user and token in Redux and localStorage
+      dispatch(setUser({ user, token }));
+      localStorage.setItem('user', JSON.stringify({ user, token }));
+
+      setMessage('Registration successful!');
+      setIsRegistered(true);
+      setTimeout(() => navigate('/login'), 1000); // Reduced delay for better UX
+    } catch (err) {
+      console.error('Registration error:', err);
+      if (err.status === 400) {
+        setMessage(err.data?.message || 'Invalid input data.');
+      } else if (err.status === 409) {
+        setMessage('Email or username already exists.');
+      } else if (err.status === 'FETCH_ERROR') {
+        setMessage('Unable to connect to the server. Please check your network.');
       } else {
-        setMessage(data.message || 'Registration failed');
+        setMessage(err.data?.message || 'An error occurred. Please try again.');
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      setMessage('Unable to connect to the server. Please try again later.');
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 relative overflow -hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 relative overflow-hidden">
       {isRegistered && <Confetti width={windowSize.width} height={windowSize.height} />}
-      {/* Wavy Background */}
       <svg
         className="absolute inset-0 w-full h-full"
         xmlns="http://www.w3.org/2000/svg"
@@ -102,61 +121,58 @@ const Register = () => {
         {message && (
           <p
             className={`text-center mb-4 ${
-              message.includes('successful')
-                ? 'text-green-500 animate__animated animate__shakeX'
-                : 'text-red-500 animate__animated animate__shakeX'
+              message.includes('successful') ? 'text-green-500' : 'text-red-500'
             }`}
           >
             {message}
           </p>
         )}
         <form className="space-y-6" onSubmit={handleSubmit}>
-          {/* Username */}
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="username">
               Username
             </label>
             <input
               type="text"
+              id="username"
               name="username"
               value={formData.username}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               onChange={handleChange}
+              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               placeholder="Your Username"
               required
             />
           </div>
-          {/* Email */}
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
               Email
             </label>
             <input
               type="email"
+              id="email"
               name="email"
               value={formData.email}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               onChange={handleChange}
+              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               placeholder="Your Email"
               required
             />
           </div>
-          {/* Password */}
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
               Password
             </label>
             <input
               type="password"
+              id="password"
               name="password"
               value={formData.password}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               onChange={handleChange}
+              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               placeholder="Your Password"
               required
             />
           </div>
-          {/* Confirm Password */}
           <div>
             <label
               className="block text-gray-700 text-sm font-bold mb-2"
@@ -166,38 +182,39 @@ const Register = () => {
             </label>
             <input
               type="password"
+              id="confirmPassword"
               name="confirmPassword"
               value={formData.confirmPassword}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               onChange={handleChange}
+              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               placeholder="Confirm Password"
               required
             />
           </div>
-          {/* Birthdate */}
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="birthdate">
               Birthdate
             </label>
             <input
               type="date"
+              id="birthdate"
               name="birthdate"
               value={formData.birthdate}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               onChange={handleChange}
+              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               required
             />
           </div>
-          {/* Gender */}
           <div>
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="gender">
               Gender
             </label>
             <select
+              id="gender"
               name="gender"
               value={formData.gender}
-              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               onChange={handleChange}
+              className="w-full bg-gray-100 focus:outline-none px-5 py-3 rounded-md border border-gray-300"
               required
             >
               <option value="" disabled>
@@ -208,12 +225,14 @@ const Register = () => {
               <option value="other">Other</option>
             </select>
           </div>
-          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-md shadow-md transition duration-300"
+            disabled={isLoading}
+            className={`w-full mt-6 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-semibold py-3 rounded-md ${
+              isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:from-purple-600 hover:to-indigo-600'
+            }`}
           >
-            Register
+            {isLoading ? 'Registering...' : 'Register'}
           </button>
         </form>
         <p className="mt-8 text-center text-gray-600">
@@ -223,7 +242,7 @@ const Register = () => {
           </Link>
           <br />
           By registering, you agree to our{' '}
-          <Link to="/terms-and-condition" className="text-indigo-600 hover:underline">
+          <Link to="/terms-and-conditions" className="text-indigo-600 hover:underline">
             Terms and Conditions
           </Link>
         </p>

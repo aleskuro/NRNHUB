@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const BlogCover = () => {
   const [file, setFile] = useState(null);
   const [imagePath, setImagePath] = useState('');
@@ -14,7 +17,7 @@ const BlogCover = () => {
     setLoadingImages(true);
     setError(null);
     try {
-      const apiUrl = `${window.location.origin}/api/cover`;
+      const apiUrl = `${API_URL}/api/cover`;
       console.log(`Fetching cover images from: ${apiUrl}`);
 
       const res = await fetch(apiUrl, {
@@ -104,7 +107,7 @@ const BlogCover = () => {
     formData.append('coverImage', file);
 
     try {
-      const apiUrl = `${window.location.origin}/api/cover/upload`;
+      const apiUrl = `${API_URL}/api/cover/upload`;
       console.log(`Uploading image to: ${apiUrl}`);
 
       const res = await fetch(apiUrl, {

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, Upload, Film, AlertTriangle } from 'lucide-react';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const UploadVideo = () => {
   const [formData, setFormData] = useState({
     title: '',
@@ -17,7 +20,7 @@ const UploadVideo = () => {
     const fetchVideos = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/api/videos');
+        const response = await fetch(`${API_URL}/api/videos`);
         if (!response.ok) throw new Error('Failed to fetch videos');
         const data = await response.json();
         setVideos(data);
@@ -72,7 +75,7 @@ const UploadVideo = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/videos', {
+      const response = await fetch(`${API_URL}/api/videos`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData),
@@ -80,7 +83,7 @@ const UploadVideo = () => {
       const data = await response.json();
       if (response.ok) {
         // Refresh video list
-        const updatedResponse = await fetch('http://localhost:5000/api/videos');
+        const updatedResponse = await fetch(`${API_URL}/api/videos`);
         const updatedVideos = await updatedResponse.json();
         setVideos(updatedVideos);
         setFormData({ title: '', embedUrl: '', category: 'Interview', description: '' });
@@ -103,7 +106,7 @@ const UploadVideo = () => {
 
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/videos/${videoId}`, {
+      const response = await fetch(`${API_URL}/api/videos/${videoId}`, {
         method: 'DELETE',
       });
 

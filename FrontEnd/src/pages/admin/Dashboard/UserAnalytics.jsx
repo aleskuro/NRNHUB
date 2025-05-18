@@ -5,6 +5,9 @@ import {
 } from 'recharts';
 import { Users, Activity, AlertTriangle, BarChart2, PieChart as PieChartIcon, Clock, Smartphone, Grid } from 'lucide-react';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const UserAnalytics = () => {
   const [userData, setUserData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ const UserAnalytics = () => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/auth/login-tracking');
+        const response = await fetch(`${API_URL}/api/auth/login-tracking`);
         if (!response.ok) throw new Error('Failed to fetch user data');
         const data = await response.json();
         setUserData(data.users || []);
@@ -291,7 +294,6 @@ const UserAnalytics = () => {
     }));
   };
 
-  // New: Retention Rate
   const getRetentionData = () => {
     const weeks = Array(4).fill(0).map((_, i) => ({
       name: `Week ${i + 1}`,
@@ -318,7 +320,6 @@ const UserAnalytics = () => {
     }));
   };
 
-  // New: Engagement by User Segment (Gender)
   const getEngagementByGender = () => {
     const genders = { Male: { logins: 0, sessions: 0 }, Female: { logins: 0, sessions: 0 }, Other: { logins: 0, sessions: 0 } };
     userData.forEach(user => {
@@ -329,7 +330,7 @@ const UserAnalytics = () => {
         return; // Skip invalid genders
       }
       if (user.loginHistory?.length) {
-        genders[gender].logins += user.loginHistory.length; // Line 340
+        genders[gender].logins += user.loginHistory.length;
       }
       if (user.sessions?.length) {
         genders[gender].sessions += user.sessions.reduce((sum, s) => sum + (s.duration || 0), 0) / 60;
@@ -341,7 +342,7 @@ const UserAnalytics = () => {
       sessionMinutes: Math.round(data.sessions)
     }));
   };
-  // New: Engagement by Age Group
+
   const getEngagementByAgeGroup = () => {
     const ageGroups = {
       'Under 18': { logins: 0, sessions: 0 },
@@ -374,7 +375,6 @@ const UserAnalytics = () => {
     }));
   };
 
-  // New: Session Quality Score
   const getSessionQualityScore = () => {
     const scores = userData.map(user => {
       let score = 0;
@@ -448,7 +448,7 @@ const UserAnalytics = () => {
             {[
               { tab: 'overview', icon: Users, label: 'Overview' },
               { tab: 'activity', icon: BarChart2, label: 'Activity' },
-              { tab: 'engagement', icon: Activity, label: 'Engagement' },
+              { tab: 'engagement', icon: Activity,  label: 'Engagement' },
               { tab: 'devices', icon: Smartphone, label: 'Devices' },
               { tab: 'users', icon: PieChartIcon, label: 'Users' }
             ].map(({ tab, icon: Icon, label }) => (

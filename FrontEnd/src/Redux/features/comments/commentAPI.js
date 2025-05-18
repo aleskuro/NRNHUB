@@ -1,10 +1,12 @@
 // commentApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export const commentApi = createApi({
   reducerPath: 'commentApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: 'http://localhost:5000/api/comments',
+    baseUrl: `${API_URL}/api/comments`, // Use template literal to append /api/comments
     credentials: 'include',
   }),
   tagTypes: ['Comments'], // Define the tag types   

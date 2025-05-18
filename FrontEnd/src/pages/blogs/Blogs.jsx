@@ -126,53 +126,57 @@ const Blogs = () => {
 
   const readTimeStartRef = useRef({});
 
-  const trackBlogInteraction = async (blogId, action, readTime = null) => {
-    try {
-      const apiUrl = `${window.location.origin}/api/blogs`;
-      if (action === 'view') {
-        readTimeStartRef.current[blogId] = Date.now();
-      } else if (action === 'read') {
-        const startTime = readTimeStartRef.current[blogId];
-        if (startTime) {
-          const readTimeSeconds = Math.round((Date.now() - startTime) / 1000);
-          await axios.post(`${apiUrl}/${blogId}/read-time`, { readTime: readTimeSeconds });
-          delete readTimeStartRef.current[blogId];
-        }
-      } else if (action === 'like') {
-        await axios.post(`${apiUrl}/${blogId}/like`, {}, { withCredentials: true });
-        toast.success('Blog liked!');
-      } else if (action === 'share') {
-        await axios.post(`${apiUrl}/${blogId}/share`);
-        toast.success('Blog shared!');
-      }
-    } catch (error) {
-      console.error(`Error tracking ${action} for blog ${blogId}:`, error);
-      toast.error(`Failed to ${action} blog`);
-    }
-  };
+ const API_URL = import.meta.env.VITE_API_URL ;
 
-  const handleSubscribe = async (e) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error('Please enter an email address');
-      return;
+const trackBlogInteraction = async (blogId, action, readTime = null) => {
+  try {
+    const apiUrl = `${API_URL}/api/blogs`; 
+
+    if (action === 'view') {
+      readTimeStartRef.current[blogId] = Date.now();
+    } else if (action === 'read') {
+      const startTime = readTimeStartRef.current[blogId];
+      if (startTime) {
+        const readTimeSeconds = Math.round((Date.now() - startTime) / 1000);
+        await axios.post(`${apiUrl}/${blogId}/read-time`, { readTime: readTimeSeconds });
+        delete readTimeStartRef.current[blogId];
+      }
+    } else if (action === 'like') {
+      await axios.post(`${apiUrl}/${blogId}/like`, {}, { withCredentials: true });
+      toast.success('Blog liked!');
+    } else if (action === 'share') {
+      await axios.post(`${apiUrl}/${blogId}/share`);
+      toast.success('Blog shared!');
     }
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      await axios.post(`${window.location.origin}/api/subscribers`, { email });
-      toast.success('Successfully subscribed to the newsletter!');
-      setEmail('');
-    } catch (error) {
-      console.error('Error subscribing:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Failed to subscribe. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  } catch (error) {
+    console.error(`Error tracking ${action} for blog ${blogId}:`, error);
+    toast.error(`Failed to ${action} blog`);
+  }
+};
+
+const handleSubscribe = async (e) => {
+  e.preventDefault();
+  if (!email) {
+    toast.error('Please enter an email address');
+    return;
+  }
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    toast.error('Please enter a valid email address');
+    return;
+  }
+  setIsSubmitting(true);
+  try {
+    await axios.post(`${API_URL}/api/subscribers`, { email });
+    toast.success('Successfully subscribed to the newsletter!');
+    setEmail('');
+  } catch (error) {
+    console.error('Error subscribing:', error.response?.data);
+    toast.error(error.response?.data?.message || 'Failed to subscribe. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
 
   useEffect(() => {
     const categoryParam = searchParams.get('category');

@@ -3,30 +3,57 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Copy } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AdminSubscribers = () => {
   const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
+
+  const fetchSubscribers = async () => {
+    try {
+      console.log('Fetching subscribers from:', `${API_URL}/api/subscribers`);
+      const response = await axios.get(`${API_URL}/api/subscribers`, {
+        timeout: 5000, // 5s timeout
+      });
+      console.log('Subscribers response:', response.data);
+      setSubscribers(response.data);
+      setLoading(false);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching subscribers:', err);
+      const errorMessage =
+        err.code === 'ERR_NETWORK'
+          ? 'Cannot connect to backend. Please ensure the server is running.'
+          : err.response?.data?.message || 'Failed to load subscribers.';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setLoading(false);
+
+      if (retryCount < maxRetries && err.code === 'ERR_NETWORK') {
+        setTimeout(() => {
+          setRetryCount(retryCount + 1);
+          console.log(`Retrying fetch subscribers (attempt ${retryCount + 2})...`);
+          fetchSubscribers();
+        }, 2000 * (retryCount + 1));
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchSubscribers = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/subscribers');
-        setSubscribers(response.data);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching subscribers:', err);
-        setError(err.response?.data?.message || 'Failed to load subscribers. Please try again.');
-        setLoading(false);
-      }
-    };
-
     fetchSubscribers();
   }, []);
 
   const copyAllEmails = () => {
+    if (subscribers.length === 0) {
+      toast.warn('No subscribers to copy.');
+      return;
+    }
     const emails = subscribers.map((sub) => sub.email).join(', ');
-    navigator.clipboard.writeText(emails)
+    navigator.clipboard
+      .writeText(emails)
       .then(() => {
         toast.success('All emails copied to clipboard!');
       })
@@ -51,10 +78,16 @@ const AdminSubscribers = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#E6F0FA] to-[#F3E8FF] flex items-center justify-center">
         <div className="text-center text-red-500">
-          <p>{error}</p>
+          <p className="text-lg">{error}</p>
           <button
-            className="mt-4 px-4 py-2 bg-[#883FFF] text-white rounded-lg hover:bg-[#7623EA]"
-            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-[#883FFF] text-white rounded-lg hover:bg-[#7623EA] transition-colors"
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              setRetryCount(0);
+              fetchSubscribers();
+            }}
+            aria-label="Retry fetching subscribers"
           >
             Retry
           </button>
@@ -73,8 +106,9 @@ const AdminSubscribers = () => {
               <button
                 onClick={copyAllEmails}
                 className="flex items-center px-4 py-2 bg-[#883FFF] text-white rounded-lg hover:bg-[#7623EA] transition-colors"
+                aria-label="Copy all subscriber emails"
               >
-                <Copy size={18} className="mr-2" />
+                <Copy size={18} className="mr-2" aria-hidden="true" />
                 Copy All Emails
               </button>
             )}
@@ -85,7 +119,7 @@ const AdminSubscribers = () => {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
+              <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-gray-100 text-gray-700">
                     <th className="p-4 font-semibold">Email</th>
@@ -94,7 +128,10 @@ const AdminSubscribers = () => {
                 </thead>
                 <tbody>
                   {subscribers.map((subscriber) => (
-                    <tr key={subscriber._id} className="border-b hover:bg-gray-50">
+                    <tr
+                      key={subscriber._id}
+                      className="border-b hover:bg-gray-50 transition-colors"
+                    >
                       <td className="p-4">{subscriber.email}</td>
                       <td className="p-4">
                         {new Date(subscriber.subscribedAt).toLocaleDateString('en-US', {

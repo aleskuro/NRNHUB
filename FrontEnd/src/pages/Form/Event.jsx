@@ -3,6 +3,8 @@ import { Calendar, Clock, MapPin, User, Mail, Users, ArrowRight, X } from 'lucid
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Event = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ const Event = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/events');
+        const response = await axios.get(`${API_URL}/api/events`);
         setEvents(response.data.events);
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to fetch events', {
@@ -89,7 +91,7 @@ const Event = () => {
       }
 
       const response = await axios.post(
-        `http://localhost:5000/api/events/${selectedEvent._id}/register`,
+        `${API_URL}/api/events/${selectedEvent._id}/register`,
         { name, email, gender, age }
       );
 
@@ -192,14 +194,11 @@ const Event = () => {
         <div className="text-center mb-12">
           <h1 className="text-5xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-indigo-600 mb-4">
             Discover Amazing Events
-           
           </h1>
-      
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">
             Join us for exciting opportunities to learn, connect, and grow with our community.
           </p>
         </div>
-        
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">

@@ -14,21 +14,48 @@ const Video = () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:5000/api/videos/category/Video');
+        const API_URL = import.meta.env.VITE_API_URL;
+        if (!API_URL) {
+          throw new Error('VITE_API_URL is not defined in .env');
+        }
+        const url = `${API_URL}/api/videos/category/Video`;
+        console.log('Fetching from:', url);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
         if (!response.ok) {
-          throw new Error(`Failed to fetch videos: ${response.status} ${response.statusText}`);
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch videos: ${response.status} ${response.statusText} - ${errorText}`);
         }
         const data = await response.json();
+        console.log('API Response:', data);
+
         if (!Array.isArray(data)) {
-          throw new Error('Response is not an array');
+          throw new Error('API response is not an array');
         }
         setVideos(data);
         applyFilter(activeFilter, data);
       } catch (error) {
         console.error('Error fetching videos:', error);
-        setError(error.message || 'An unexpected error occurred.');
+        setError(error.message || 'An unexpected error occurred while fetching videos.');
         setVideos([]);
         setFilteredVideos([]);
+        // Fallback to mock data
+        const mockData = [
+          {
+            _id: 'mock-video-1',
+            title: 'Test Video',
+            embedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+            description: 'A test video',
+            createdAt: '2025-05-01T12:00:00Z',
+            category: 'Video',
+          },
+        ];
+        console.log('Using mock data:', mockData);
+        setVideos(mockData);
+        applyFilter(activeFilter, mockData);
       } finally {
         setLoading(false);
       }
@@ -37,15 +64,19 @@ const Video = () => {
   }, []);
 
   // --- Filtering/Sorting Logic ---
-  const applyFilter = useCallback((filter, videosToFilter = videos) => {
-    let sortedVideos = [...videosToFilter];
-    if (filter === 'Latest') {
-      sortedVideos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else if (filter === 'Oldest') {
-      sortedVideos.sort((a, b) => new Date(a.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-    setFilteredVideos(sortedVideos);
-  }, [videos]);
+  const applyFilter = useCallback(
+    (filter, videosToFilter = videos) => {
+      let sortedVideos = [...videosToFilter];
+      if (filter === 'Latest') {
+        sortedVideos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      } else if (filter === 'Oldest') {
+        sortedVideos.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      }
+      console.log('Filtered Videos:', sortedVideos);
+      setFilteredVideos(sortedVideos);
+    },
+    [videos]
+  );
 
   // --- Effect to re-apply filter when activeFilter changes ---
   useEffect(() => {
@@ -59,7 +90,10 @@ const Video = () => {
 
   // --- Utility: Extract YouTube Video ID ---
   const extractVideoId = (embedUrl) => {
-    if (!embedUrl || typeof embedUrl !== 'string') return null;
+    if (!embedUrl || typeof embedUrl !== 'string') {
+      console.warn('Invalid embedUrl:', embedUrl);
+      return null;
+    }
     try {
       const url = new URL(embedUrl);
       if (url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be')) {
@@ -73,11 +107,11 @@ const Video = () => {
           return url.pathname.substring(1);
         }
       }
+      return null;
     } catch (e) {
-      console.error('Invalid URL:', embedUrl);
+      console.error('Error parsing URL:', embedUrl, e);
       return null;
     }
-    return null;
   };
 
   // --- Share Logic ---
@@ -85,7 +119,8 @@ const Video = () => {
     const videoId = extractVideoId(embedUrl);
     if (videoId) {
       const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
-      navigator.clipboard.writeText(watchUrl)
+      navigator.clipboard
+        .writeText(watchUrl)
         .then(() => showToast('Video URL copied to clipboard!'))
         .catch(() => showToast('Failed to copy URL.'));
     } else {
@@ -97,7 +132,8 @@ const Video = () => {
   const showToast = (message) => {
     const toast = document.createElement('div');
     toast.innerText = message;
-    toast.className = 'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-2 rounded-md shadow-lg text-sm opacity-0 transition-opacity duration-300 ease-out z-50';
+    toast.className =
+      'fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-purple-600 text-white px-4 py-2 rounded-md shadow-lg text-sm opacity-0 transition-opacity duration-300 ease-out z-50';
     document.body.appendChild(toast);
 
     requestAnimationFrame(() => {
@@ -106,9 +142,7 @@ const Video = () => {
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.addEventListener('transitionend', () => {
-        toast.remove();
-      }, { once: true });
+      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
     }, 3000);
   };
 
@@ -118,10 +152,9 @@ const Video = () => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Invalid date';
-      const options = { year: 'numeric', month: 'short', day: 'numeric' };
-      return date.toLocaleDateString('en-US', options);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     } catch (e) {
-      console.error('Error formatting date:', e);
+      console.error('Error formatting date:', dateString, e);
       return 'Invalid date';
     }
   };
@@ -130,7 +163,7 @@ const Video = () => {
   const VideoCard = ({ video }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const videoId = extractVideoId(video.embedUrl || '');
-    const thumbnailUrl = videoId ? `http://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
+    const thumbnailUrl = videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : null;
     const isHovered = activeVideoId === video._id;
 
     const handlePlayClick = () => {
@@ -154,9 +187,10 @@ const Video = () => {
               src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
               title={video.title || 'YouTube video player'}
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
               allowFullScreen
-            ></iframe>
+            />
           ) : videoId && thumbnailUrl ? (
             <div
               className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-cover bg-center"
@@ -177,11 +211,11 @@ const Video = () => {
                   />
                 </svg>
               </div>
-              <div className="absolute top-0 left-0 w-full h-full bg-black opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="absolute top-0 left-0 w-full h-full bg-black opacity-20 group-hover:opacity-30 transition-opacity" />
             </div>
           ) : (
             <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-200 text-gray-500 text-sm">
-              Video unavailable.
+              Video unavailable
             </div>
           )}
         </div>
@@ -190,7 +224,9 @@ const Video = () => {
         <div className="bg-white p-4 flex flex-col flex-grow justify-between">
           <div>
             <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-semibold text-gray-800 truncate flex-1 mr-2">{video.title || 'Untitled'}</h3>
+              <h3 className="text-lg font-semibold text-gray-800 truncate flex-1 mr-2">
+                {video.title || 'Untitled'}
+              </h3>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -217,7 +253,9 @@ const Video = () => {
                 Share
               </button>
             </div>
-            <p className="text-sm text-gray-600 mb-3 line-clamp-3 flex-grow">{video.description || 'No description available.'}</p>
+            <p className="text-sm text-gray-600 mb-3 line-clamp-3 flex-grow">
+              {video.description || 'No description available.'}
+            </p>
           </div>
 
           <div className="flex justify-between items-center mt-auto">
@@ -274,27 +312,29 @@ const Video = () => {
               backgroundSize: '200% 100%',
               animation: 'shine 1.5s linear infinite',
             }}
-          ></div>
+          />
           <div className="bg-white p-4 flex flex-col flex-grow justify-between">
             <div>
-              <div className="h-5 bg-gray-200 rounded w-3/4 mb-2 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded w-full mb-1 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded w-full mb-3 animate-pulse"></div>
+              <div className="h-5 bg-gray-200 rounded w-3/4 mb-2 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-full mb-1 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-full mb-3 animate-pulse" />
             </div>
             <div className="flex justify-between mt-auto">
-              <div className="h-3 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded w-1/6 animate-pulse"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/4 animate-pulse" />
+              <div className="h-4 bg-gray-200 rounded w-1/6 animate-pulse" />
             </div>
           </div>
         </div>
       ))}
-      <style>{`
-        @keyframes shine {
-          to {
-            background-position: -200% 0;
+      <style>
+        {`
+          @keyframes shine {
+            to {
+              background-position: -200% 0;
+            }
           }
-        }
-      `}</style>
+        `}
+      </style>
     </div>
   );
 
@@ -319,7 +359,7 @@ const Video = () => {
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800">Video Category</h1>
-          <div className="h-1 bg-purple-500 mt-2 rounded w-24"></div>
+          <div className="h-1 bg-purple-500 mt-2 rounded w-24" />
         </div>
 
         <div className="mb-8 flex flex-wrap gap-3">
@@ -327,8 +367,9 @@ const Video = () => {
             <button
               key={tab}
               onClick={() => handleFilter(tab)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50
-                ${activeFilter === tab ? 'bg-purple-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 ${
+                activeFilter === tab ? 'bg-purple-600 text-white shadow' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
               aria-pressed={activeFilter === tab}
             >
               {tab}

@@ -4,6 +4,9 @@ import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import noImage from '../../../assets/images.png';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const FormData = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,7 +16,7 @@ const FormData = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/events');
+        const response = await axios.get(`${API_URL}/api/events`);
         setEvents(response.data.events);
         setLoading(false);
       } catch (error) {
@@ -104,7 +107,7 @@ const FormData = () => {
                 </button>
               </div>
               <Link
-                to={`/dashboard/events/${event._id}/details`} // Fixed path
+                to={`/dashboard/events/${event._id}/details`}
                 className="mt-4 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 font-Rubik"
               >
                 View Registration Details

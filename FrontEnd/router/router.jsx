@@ -25,7 +25,7 @@ import AdminBookACall from '../src/pages/admin/Messages/AdminMessages/AdminBookA
 import BlogAnalyticsDashboard from '../src/pages/admin/Dashboard/BlogAnalyticsDashboard';
 import AdminSubscribers from '../src/pages/admin/Messages/AdminMessages/AdminSubscribers';
 import UserAnalytics from '../src/pages/admin/Dashboard/UserAnalytics';
-import CreateForm from '../src/pages/admin/Dashboard/createForm';
+import CreateForm from '../src/pages/admin/Dashboard/CreateForm';
 import Event from '../src/pages/Form/Event';
 import FormData from '../src/pages/admin/Dashboard/FormData';
 import EventDetails from '../src/pages/admin/Dashboard/EventDetails';

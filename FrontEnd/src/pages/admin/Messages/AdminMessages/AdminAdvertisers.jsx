@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AdminAdvertisers = () => {
   const [inquiries, setInquiries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,7 +12,7 @@ const AdminAdvertisers = () => {
   useEffect(() => {
     const fetchInquiries = async () => {
       try {
-        const apiUrl = `${window.location.origin}/api/ads/inquiries`;
+        const apiUrl = `${API_URL}/api/ads/inquiries`;
         console.log(`Fetching inquiries from: ${apiUrl}`);
 
         // Assuming JWT token is stored in localStorage or another mechanism

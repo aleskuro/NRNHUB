@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const AdminBookACall = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,7 +12,7 @@ const AdminBookACall = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
-        const apiUrl = `${window.location.origin}/api/calls/bookings`;
+        const apiUrl = `${API_URL}/api/calls/bookings`;
         console.log(`Fetching bookings from: ${apiUrl}`);
 
         const res = await fetch(apiUrl, {

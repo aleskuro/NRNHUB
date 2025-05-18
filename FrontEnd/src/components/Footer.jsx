@@ -14,7 +14,7 @@ const LogoAndAbout = () => (
       className="h-16 mb-6 mx-auto transform transition-transform duration-300 hover:scale-105"
     />
     <p className="text-gray-700 text-sm leading-relaxed text-center max-w-xs">
-      NRNHUB connects NRNs to their roots—through culture, community, and collective initiatives worldwide.
+      NRNHUB connects NRNs to their roots through culture, community, and collective initiatives worldwide.
     </p>
     <hr className="my-4 border-gray-300 w-full max-w-xs" />
     <p className="text-sm text-black text-center">© 2025 NRNHUB. All rights reserved.</p>
@@ -52,7 +52,7 @@ const QuickLinks = () => (
     <h3 className="text-lg font-semibold text-[#883FFF] mb-4">Quick Links</h3>
     <ul className="space-y-3 text-sm">
       {[
-        { name: 'Contact Us', path: '/messages' },
+        { name: 'Contact Us', path: '/BookACall' },
         { name: 'Disclaimer', path: '#' },
         { name: 'Privacy Policy', path: '#' },
         { name: 'Terms & Conditions', path: '#' },

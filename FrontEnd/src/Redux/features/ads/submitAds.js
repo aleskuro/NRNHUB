@@ -1,4 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import { API_URL } from '../path/to/your/env/config';  // Adjust the import path as needed
 
 export const submitAds = createAsyncThunk(
   'ads/submitAds',
@@ -25,11 +26,12 @@ export const submitAds = createAsyncThunk(
         visibility
       };
       
-      const response = await fetch('http://localhost:5000/api/ads', {
+      const response = await fetch(`${API_URL}/api/ads`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',  // Added for consistency with authApi.js to include cookies if authentication is required
         body: JSON.stringify(payload),
       });
       

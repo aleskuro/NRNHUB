@@ -1,9 +1,12 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
+const API_URL = import.meta.env.VITE_API_URL;  // Using environment variable as in authApi.js
+
 export const blogsApi = createApi({
   reducerPath: 'blogsApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:5000/api/',
+    baseUrl: `${API_URL}/api/`,  // Dynamically append to the base API URL
+    credentials: 'include',  // Added for consistency with authApi.js to include cookies
     prepareHeaders: (headers, { getState, endpoint }) => {
       const token = getState().auth.token;
       if (token && ['postBlog', 'updateBlog', 'deleteBlog'].includes(endpoint)) {
@@ -12,7 +15,7 @@ export const blogsApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ['Blogs'],
+  tagTypes: ['Blogs'],  // Retained and consistent with authApi.js structure
   endpoints: (builder) => ({
     fetchBlogs: builder.query({
       query: ({ search = '', category = '', location = '' }) => {

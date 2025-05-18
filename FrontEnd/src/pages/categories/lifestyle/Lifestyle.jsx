@@ -1,13 +1,95 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useFetchBlogsQuery } from '../../../Redux/features/blogs/blogApi';
+import { fetchAdsFromServer } from '../../../Redux/features/ads/adThunks';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import noImage from '../../../assets/images.png';
-import { Clock, BookOpen, Heart, Share2, ArrowRight } from 'lucide-react';
+import { Clock, BookOpen, Heart, Share2 } from 'lucide-react';
+import { Helmet } from 'react-helmet';
 
-// Reusable Blog Card Component
+const API_URL = import.meta.env.VITE_API_URL;
+
+// AdSpace Component
+const AdSpace = ({ adType, className, positionLabel }) => {
+  const { adImages, adLinks, visibility } = useSelector((state) => state.ads);
+  const isVisible = visibility?.[adType] ?? false;
+  const image = adImages?.[adType];
+  const link = adLinks?.[adType];
+
+  useEffect(() => {
+    console.log(`AdSpace ${adType}:`, {
+      isVisible,
+      image,
+      link,
+      visibilityState: visibility,
+      allAdImages: adImages,
+      allAdLinks: adLinks,
+    });
+  }, [isVisible, image, link, visibility, adImages, adLinks]);
+
+  if (!isVisible) {
+    console.log(`AdSpace ${adType} not visible: visibility=${isVisible}`);
+    return null;
+  }
+
+  if (!image) {
+    console.log(`AdSpace ${adType} is visible but has no image set in state`);
+    return (
+      <div className={`w-full bg-gray-100 rounded-xl overflow-hidden shadow-md flex items-center justify-center py-8 ${className || ''}`}>
+        <div className="text-center p-6">
+          <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">Advertisement</div>
+          <div className="text-gray-700 font-semibold text-lg">{positionLabel} Ad Placement</div>
+          <div className="text-gray-500 text-sm mt-2">Advertise with Us</div>
+          <a href="/advertise" className="mt-4 inline-block text-[#7734E3] hover:text-[#6828C2] text-sm font-medium">Learn More →</a>
+        </div>
+      </div>
+    );
+  }
+
+  const isValidUrl = image && (image.startsWith('http://') || image.startsWith('https://') || image.startsWith('/'));
+  if (!isValidUrl) {
+    console.log(`Invalid ad image URL for ${adType}: ${image}`);
+    return null;
+  }
+
+  console.log(`AdSpace ${adType} rendering with image: ${image}`);
+  const handleAdClick = () => console.log(`Ad clicked: ${adType}, Link: ${link}`);
+  return (
+    <div className={`w-full rounded-xl overflow-hidden shadow-md ${className || ''}`}>
+      {link ? (
+        <a href={link} target="_blank" rel="noopener noreferrer" onClick={handleAdClick}>
+          <img
+            src={image}
+            alt={`${positionLabel} Ad`}
+            className="w-full h-auto max-w-[1152px] mx-auto rounded-xl object-contain"
+            style={{ maxWidth: '100%' }}
+            loading="lazy"
+            onError={(e) => {
+              console.error(`Failed to load ad image for ${adType}: ${image}`);
+              e.target.src = noImage;
+            }}
+          />
+        </a>
+      ) : (
+        <img
+          src={image}
+          alt={`${positionLabel} Ad`}
+          className="w-full h-auto max-w-[1152px] mx-auto rounded-xl object-contain"
+          style={{ maxWidth: '100%' }}
+          loading="lazy"
+          onError={(e) => {
+            console.error(`Failed to load ad image for ${adType}: ${image}`);
+            e.target.src = noImage;
+          }}
+        />
+      )}
+    </div>
+  );
+};
+
+// BlogCard Component
 const BlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, getCategoryColor, formatDate }) => (
   <Link
     to={`/blogs/${blog._id}`}
@@ -15,7 +97,7 @@ const BlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, getCategory
     onClick={() => window.scrollTo(0, 0)}
   >
     <div className="bg-gradient-to-br from-white to-purple-50 rounded-xl shadow-sm overflow-hidden mb-6 hover:shadow-md transition-shadow border border-purple-100">
-      <div className="relative h-48 w-full"> {/* Fixed height, full width */}
+      <div className="relative h-48 w-full">
         <img
           src={blog.coverImg || noImage}
           alt={blog.title}
@@ -61,7 +143,7 @@ const BlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, getCategory
   </Link>
 );
 
-// Featured Blog Card
+// FeaturedBlogCard Component
 const FeaturedBlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, getCategoryColor, formatDate }) => (
   <Link
     to={`/blogs/${blog?._id}`}
@@ -90,40 +172,100 @@ const FeaturedBlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, get
   </Link>
 );
 
+// CompactBlogCard Component
+const CompactBlogCard = ({ blog, truncateTitle, getCategoryColor }) => (
+  <Link
+    to={`/blogs/${blog._id}`}
+    className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-gradient-to-r from-gray-50 to-gray-100"
+    onClick={() => window.scrollTo(0, 0)}
+  >
+    <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0">
+      <img
+        src={blog.coverImg || noImage}
+        alt={blog.title || 'Blog Image'}
+        className="w-full h-full object-cover"
+        onError={(e) => (e.target.src = noImage)}
+      />
+    </div>
+    <div className="flex-grow">
+      <h4 className="text-lg font-semibold text-blue-700 mb-2">
+        {(blog.title || 'Untitled').substring(0, 70)}{blog.title?.length > 70 ? '...' : ''}
+      </h4>
+      <p className="text-gray-600 text-sm">
+        {(blog.description || 'No description available').substring(0, 100)}...
+      </p>
+      <div className="mt-2">
+        <span className={`inline-block ${getCategoryColor(blog.category)} text-white text-xs px-2 py-1 rounded-full`}>
+          {blog.category || 'General'}
+        </span>
+      </div>
+    </div>
+  </Link>
+);
+
 const Lifestyle = () => {
+  const dispatch = useDispatch();
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
-  // Fetch all blogs
   const { data: blogs = [], error, isLoading } = useFetchBlogsQuery({ search: '', category: '' });
-  const ads = useSelector((state) => state.ads);
+  const { adImages, adLinks, visibility } = useSelector((state) => state.ads);
 
-  // Define lifestyle subcategories
+  // Fetch ads on mount
+  useEffect(() => {
+    console.log('Fetching ads for Lifestyle page...');
+    dispatch(fetchAdsFromServer())
+      .unwrap()
+      .then((data) => console.log('Ads fetched successfully:', data))
+      .catch((err) => {
+        console.error('Error fetching ads:', err);
+        toast.error(`Failed to fetch ads: ${err.message || 'Unknown error'}`);
+      });
+  }, [dispatch]);
+
+  // Debug ad state
+  useEffect(() => {
+    console.log('Current ads state for Lifestyle:', {
+      adImages,
+      adLinks,
+      visibility,
+      keyAds: {
+        lifestyle1: { image: adImages?.lifestyle1, link: adLinks?.lifestyle1, visible: visibility?.lifestyle1 },
+        lifestyle2: { image: adImages?.lifestyle2, link: adLinks?.lifestyle2, visible: visibility?.lifestyle2 },
+      },
+    });
+  }, [adImages, adLinks, visibility]);
+
   const lifestyleSubcategories = useMemo(
     () => ['CULTURE', 'ENTERTAINMENT', 'FOOD', 'TRAVEL', 'HEALTH', 'SPORTS'],
     []
   );
 
-  // Filter blogs by Lifestyle subcategories and sort by latest
-  const lifestyleBlogs = useMemo(
-    () =>
-      blogs
-        .filter((blog) => lifestyleSubcategories.includes(blog.category?.toUpperCase()))
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
-    [blogs, lifestyleSubcategories]
-  );
+  const { lifestyleBlogs, featuredBlog, suggestedBlogs } = useMemo(() => {
+    const filteredLifestyleBlogs = blogs
+      .filter((blog) => lifestyleSubcategories.includes(blog.category?.toUpperCase()))
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  // Filter blogs based on active filter
+    const lifestyleBlogIds = new Set(filteredLifestyleBlogs.map((blog) => blog._id));
+    const otherBlogs = blogs
+      .filter((blog) => !lifestyleBlogIds.has(blog._id) && !lifestyleSubcategories.includes(blog.category?.toUpperCase()))
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+
+    return {
+      lifestyleBlogs: filteredLifestyleBlogs,
+      featuredBlog: filteredLifestyleBlogs[0],
+      suggestedBlogs: otherBlogs,
+    };
+  }, [blogs, lifestyleSubcategories]);
+
   const filteredBlogs = useMemo(() => {
     if (activeFilter === 'ALL') return lifestyleBlogs;
     return lifestyleBlogs.filter((blog) => blog.category?.toUpperCase() === activeFilter);
   }, [lifestyleBlogs, activeFilter]);
 
-  // Featured blog
-  const featuredBlog = lifestyleBlogs[0];
-
-  // Utility functions
   const truncateTitle = useCallback((title, maxLength = 60) => {
     if (!title) return 'Untitled';
     if (title.length <= maxLength) return title;
@@ -134,9 +276,7 @@ const Lifestyle = () => {
     if (!dateString) return 'Recently published';
     try {
       const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return 'Invalid date';
-      }
+      if (isNaN(date.getTime())) return 'Invalid date';
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     } catch (e) {
       console.error('Error formatting date:', e);
@@ -178,12 +318,12 @@ const Lifestyle = () => {
 
   const categoryColors = useMemo(
     () => ({
-      CULTURE: 'bg-rose-600',
-      ENTERTAINMENT: 'bg-red-600',
-      FOOD: 'bg-amber-600',
-      TRAVEL: 'bg-emerald-600',
-      HEALTH: 'bg-teal-600',
-      SPORTS: 'bg-blue-600',
+      culture: 'bg-rose-600',
+      entertainment: 'bg-red-600',
+      food: 'bg-amber-600',
+      travel: 'bg-emerald-600',
+      health: 'bg-teal-600',
+      sports: 'bg-blue-600',
       default: 'bg-gray-600',
     }),
     []
@@ -191,42 +331,38 @@ const Lifestyle = () => {
 
   const getCategoryColor = useCallback(
     (category) => {
-      const normalizedCategory = category?.toUpperCase();
+      const normalizedCategory = category?.toLowerCase();
       return categoryColors[normalizedCategory] || categoryColors.default;
     },
     [categoryColors]
   );
 
-  const renderAdSpace = useCallback((adType, positionLabel) => {
-    return (
-      <div className="w-full bg-red-500 rounded-xl overflow-hidden shadow-md flex items-center justify-center mb-6 h-60 lg:h-72">
-        <div className="text-center p-6">
-          <div className="text-xl uppercase tracking-wide text-white mb-2 font-bold">Advertisement</div>
-          <div className="text-white font-medium">{positionLabel} Placement</div>
-        </div>
-      </div>
-    );
-  }, []);
-
-  // Subscription handler
   const handleSubscribe = async (e) => {
     e.preventDefault();
     if (!email) {
+      setEmailError('Please enter an email address');
       toast.error('Please enter an email address');
       return;
     }
     if (!/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailError('Please enter a valid email address');
       toast.error('Please enter a valid email address');
       return;
     }
+    setEmailError('');
     setIsSubmitting(true);
     try {
-      await axios.post(`${window.location.origin}/api/subscribers`, { email });
+      await axios.post(`${API_URL}/api/subscribers`, { email });
       toast.success('Successfully subscribed to the newsletter!');
       setEmail('');
     } catch (error) {
-      console.error('Error subscribing:', error.response?.data);
-      toast.error(error.response?.data?.message || 'Failed to subscribe. Please try again.');
+      console.log('Subscription attempt:', { email, error: error.response?.data });
+      const message =
+        error.response?.status === 429
+          ? 'Too many attempts, please try again later.'
+          : error.response?.data?.message || 'Failed to subscribe. Please try again.';
+      setEmailError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -234,6 +370,15 @@ const Lifestyle = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen text-gray-800">
+      <Helmet>
+        <link rel="canonical" href="http://localhost:5173/lifestyle" />
+        <title>Lifestyle Blogs | NRNHUB</title>
+        <meta
+          name="description"
+          content="Explore articles on culture, entertainment, food, travel, health, and sports, offering insights and inspiration for a vibrant life."
+        />
+      </Helmet>
+
       {/* Hero Banner Section */}
       <div className="relative py-20 bg-gradient-to-r from-[#883FFF] to-[#6023BB] overflow-hidden rounded-b-2xl">
         <div className="absolute inset-0 opacity-30">
@@ -338,7 +483,7 @@ const Lifestyle = () => {
           ))}
         </div>
 
-        {/* Main Content and Ad Sidebar */}
+        {/* Main Content and Sidebar */}
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Articles List */}
           <div className="lg:w-2/3">
@@ -377,39 +522,56 @@ const Lifestyle = () => {
             )}
           </div>
 
-          {/* Advertisement Sidebar */}
+          {/* Sidebar */}
           <div className="lg:w-1/3">
-            <div className="sticky top-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <span className="bg-[#7734E3] w-2 h-6 mr-2 rounded-sm inline-block"></span>
-                Sponsored Content
-              </h2>
-              {renderAdSpace('lifestyleSidebar', 'Lifestyle Sidebar')}
-              {renderAdSpace('lifestyleTopAd', 'Lifestyle Top')}
-              <div className="bg-gradient-to-r from-[#7734E3] to-[#5E30B2] rounded-xl shadow-sm p-6 text-white mb-6">
-                <h3 className="text-lg font-bold mb-2">Stay Updated</h3>
+            <div className="sticky top-6 space-y-8">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                  <span className="bg-[#7734E3] w-2 h-6 mr-2 rounded-sm inline-block"></span>
+                  Sponsored Content
+                </h2>
+                <AdSpace adType="lifestyle1" positionLabel="First" className="mb-6 w-full" />
+                <AdSpace adType="lifestyle2" positionLabel="Second" className="mb-6 w-full" />
+              </div>
+              <div className="bg-gradient-to-r from-[#7734E3] to-[#5E30B2] rounded-xl shadow-sm p-6 text-white">
+                <h3 className="text-lg font-bold mb-2">Join Our Newsletter</h3>
                 <p className="text-sm mb-4 text-purple-100">
-                  Get the latest lifestyle updates delivered to your inbox.
+                  Subscribe to receive the latest lifestyle tips, trends, and updates directly in your inbox.
                 </p>
-                <form onSubmit={handleSubscribe} className="flex">
-                  <input
-                    type="email"
-                    placeholder="Your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-l-lg bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-white border-2 border-white placeholder-gray-400"
-                    disabled={isSubmitting}
-                  />
+                <form onSubmit={handleSubscribe} className="flex flex-col gap-3" aria-label="Newsletter Subscription">
+                  <div className="relative">
+                    <input
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setEmailError('');
+                      }}
+                      className={`w-full px-4 py-2 rounded-lg bg-white text-gray-800 border-2 ${
+                        emailError ? 'border-red-400' : 'border-white'
+                      } focus:outline-none focus:ring-2 focus:ring-purple-300 placeholder-gray-400`}
+                      disabled={isSubmitting}
+                      aria-invalid={!!emailError}
+                      aria-describedby={emailError ? 'email-error' : undefined}
+                    />
+                    {emailError && (
+                      <p id="email-error" className="text-xs text-red-200 mt-1">
+                        {emailError}
+                      </p>
+                    )}
+                  </div>
                   <button
                     type="submit"
-                    className="bg-white text-[#7734E3] px-4 py-2 rounded-r-lg font-medium hover:bg-gray-100 transition-colors border-2 border-white focus:outline-none focus:ring-2 focus:ring-white"
+                    className="bg-white text-[#7734E3] px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors border-2 border-white focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:opacity-50"
                     disabled={isSubmitting}
+                    aria-label={isSubmitting ? 'Subscribing in progress' : 'Subscribe to newsletter'}
                   >
                     {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                   </button>
                 </form>
               </div>
-              <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-bold text-gray-800 mb-4">Browse Categories</h3>
                 <div className="flex flex-wrap gap-2">
                   {lifestyleSubcategories.map((subcategory) => (
@@ -431,6 +593,25 @@ const Lifestyle = () => {
             </div>
           </div>
         </div>
+
+        {/* Suggested Blogs Section */}
+        {suggestedBlogs.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-rose-600 mb-6">
+              Explore More Topics
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {suggestedBlogs.map((blog) => (
+                <CompactBlogCard
+                  key={blog._id}
+                  blog={blog}
+                  truncateTitle={truncateTitle}
+                  getCategoryColor={getCategoryColor}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer Promo */}
@@ -443,44 +624,41 @@ const Lifestyle = () => {
             </p>
             <div className="flex justify-center gap-4">
               <Link
-                              to="/lifestyle"
-                              className="bg-[#7734E3] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#6828C2] transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
-                              onClick={() => window.scrollTo(0, 0)}
-                            >
-                              Explore Lifestyle
-                            </Link>
-                            <Link
-                              to="/economy"
-                              className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
-                              onClick={() => window.scrollTo(0, 0)}
-                            >
-                              Economy Insights
-                            </Link>
+                to="/lifestyle"
+                className="bg-[#7734E3] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#6828C2] transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                Explore Lifestyle
+              </Link>
+              <Link
+                to="/economy"
+                className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+                onClick={() => window.scrollTo(0, 0)}
+              >
+                Economy Insights
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <style jsx>{`
-        .line-clamp-1 {
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .line-clamp-2 {
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .line-clamp-3 {
-          display: -webkit-box;
-          -webkit-line-clamp: 3;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-      `}</style>
+      {/* Styles */}
+      <style>
+        {`
+          .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+          .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        `}
+      </style>
     </div>
   );
 };

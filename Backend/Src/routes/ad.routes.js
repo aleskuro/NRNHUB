@@ -7,16 +7,19 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Base URL from environment variable
+const BASE_URL = process.env.BASE_URL;
+
 // Middleware for admin authentication
 const authAdminMiddleware = (req, res, next) => {
-  const isAdmin = true; // Placeholder: Replace with actual JWT verification logic
+  const isAdmin = true; // Placeholder: Replace with JWT verification
   if (!isAdmin) {
     return res.status(403).json({ message: 'Admin access required' });
   }
   next();
 };
 
-// Configure multer for file uploads
+// Configure multer for ad uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadPath = path.join(__dirname, '..', 'Uploads', 'ads');
@@ -27,15 +30,13 @@ const storage = multer.diskStorage({
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    cb(null, `adImage-${uniqueSuffix}${path.extname(file.originalname)}`);
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: {
-    fileSize: process.env.MAX_FILE_SIZE || 5 * 1024 * 1024, // 5MB default
-  },
+  limits: { fileSize: process.env.MAX_FILE_SIZE || 5 * 1024 * 1024 },
   fileFilter: function (req, file, cb) {
     const filetypes = /jpeg|jpg|png|gif|webp/;
     const mimetype = filetypes.test(file.mimetype);
@@ -45,17 +46,18 @@ const upload = multer({
     }
     cb(new Error('Only JPEG, PNG, GIF, or WebP images are allowed'));
   },
-});
+}).single('adImage');
 
-// Define valid ad types
+// Valid ad types
 const validAdTypes = [
   'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
   'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
   'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
-  'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3'
+  'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3',
+  'economyAds1', 'economyAds2', 'lifestyle1', 'lifestyle2'
 ];
 
-// Test route to verify API is accessible
+// Test route
 router.get('/test', (req, res) => {
   res.json({ status: 'Ad routes are working' });
 });
@@ -72,59 +74,26 @@ router.get('/', async (req, res) => {
         adImages: {},
         adLinks: {},
         visibility: {},
-        mobileAdVisible: false,
-        right1AdVisible: false,
-        right2AdVisible: false,
-        right3AdVisible: false,
-        right4AdVisible: false,
-        right5AdVisible: false,
-        left1AdVisible: false,
-        left2AdVisible: false,
-        left3AdVisible: false,
-        left4AdVisible: false,
-        left5AdVisible: false,
-        bottomAdVisible: false,
-        navbarAdVisible: false,
-        heroAdVisible: false,
-        blogsFirstAdVisible: false,
-        blogsSecondAdVisible: false,
-        blogsThirdAdVisible: false,
-        blogsFourthAdVisible: false,
-        blogsFifthAdVisible: false,
-        blogsHome1AdVisible: false,
-        blogsHome2AdVisible: false,
-        blogsHome3AdVisible: false,
+        ...validAdTypes.reduce((acc, key) => ({ ...acc, [`${key}AdVisible`]: false }), {}),
       };
       console.log('Sending default ad response:', JSON.stringify(defaults, null, 2));
       return res.json(defaults);
     }
 
-    // Sanitize response
     const response = {
       adImages: ad.adImages || {},
       adLinks: ad.adLinks || {},
       visibility: ad.visibility || {},
     };
 
-    // Remove Mongoose metadata
-    Object.keys(response.adImages).forEach(key => {
-      if (key.startsWith('$')) delete response.adImages[key];
-    });
-    Object.keys(response.adLinks).forEach(key => {
-      if (key.startsWith('$')) delete response.adLinks[key];
-    });
-    Object.keys(response.visibility).forEach(key => {
-      if (key.startsWith('$')) delete response.visibility[key];
-    });
-
-    Object.keys(response.visibility).forEach((key) => {
-      response[`${key}AdVisible`] = response.visibility[key];
+    Object.keys(response).forEach((field) => {
+      Object.keys(response[field]).forEach((key) => {
+        if (key.startsWith('$')) delete response[field][key];
+      });
     });
 
     validAdTypes.forEach((key) => {
-      if (response[`${key}AdVisible`] === undefined) {
-        response[`${key}AdVisible`] = false;
-      }
+      response[`${key}AdVisible`] = Boolean(response.visibility[key]);
     });
 
     console.log('Sending ad response:', JSON.stringify(response, null, 2));
@@ -136,48 +105,45 @@ router.get('/', async (req, res) => {
 });
 
 // Upload ad image
-router.post('/upload', upload.single('adImage'), (req, res) => {
-  console.log('Upload route accessed');
-
-  if (!req.file) {
-    console.error('No file uploaded');
-    return res.status(400).json({ message: 'No file uploaded' });
+router.post('/upload', upload, async (req, res) => {
+  try {
+    console.log('Upload request received:', { file: req.file, body: req.body });
+    if (!req.file) {
+      console.error('No file uploaded in request');
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const imageUrl = `${BASE_URL}/Uploads/ads/${req.file.filename}`;
+    console.log('Image uploaded:', imageUrl);
+    res.json({ url: imageUrl });
+  } catch (error) {
+    console.error('Error uploading ad image:', error);
+    res.status(500).json({ message: error.message || 'Server error' });
   }
-
-  const imagePath = `/Uploads/ads/${req.file.filename}`;
-  console.log(`Upload successful, path: ${imagePath}`);
-
-  res.status(200).json({ path: imagePath });
 });
 
 // Create or update ads
 router.post('/', async (req, res) => {
   try {
     console.log('Received ad update request:', JSON.stringify(req.body, null, 2));
-
     const { adImages, adLinks, visibility } = req.body;
 
-    // Validate inputs
     if (!adImages || !adLinks || !visibility) {
       console.error('Missing required fields:', { adImages, adLinks, visibility });
       return res.status(400).json({ message: 'adImages, adLinks, and visibility are required' });
     }
 
-    // Validate payload size
-    const payloadSize = JSON.stringify(req.body).length;
-    if (payloadSize > 1024 * 1024) {
-      console.error('Payload too large:', payloadSize);
-      return res.status(400).json({ message: 'Payload too large. Please reduce the number of ads.' });
+    if (JSON.stringify(req.body).length > 1024 * 1024) {
+      console.error('Payload too large');
+      return res.status(400).json({ message: 'Payload too large' });
     }
 
-    // Validate ad types and data
     for (const adType of Object.keys(adImages)) {
       if (!validAdTypes.includes(adType)) {
         console.error('Invalid ad type in adImages:', adType);
         return res.status(400).json({ message: `Invalid ad type in adImages: ${adType}` });
       }
       if (adImages[adType] && (typeof adImages[adType] !== 'string' || !adImages[adType].trim())) {
-        console.error('Invalid image path for ad:', adType, adImages[adType]);
+        console.error('Invalid image path for ad:', adType);
         return res.status(400).json({ message: `Invalid image path for ad: ${adType}` });
       }
     }
@@ -185,10 +151,10 @@ router.post('/', async (req, res) => {
     for (const adType of Object.keys(adLinks)) {
       if (!validAdTypes.includes(adType)) {
         console.error('Invalid ad type in adLinks:', adType);
-        return res.status(400).json({ message: `Invalid ad type in adLinks: ${adType}` });
+        return res.status(400).json({ message: `Invalid ad type in adným4Links: ${adType}` });
       }
       if (adLinks[adType] && typeof adLinks[adType] !== 'string') {
-        console.error('Invalid link for ad:', adType, adLinks[adType]);
+        console.error('Invalid link for ad:', adType);
         return res.status(400).json({ message: `Invalid link for ad: ${adType}` });
       }
     }
@@ -199,16 +165,15 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ message: `Invalid ad type in visibility: ${adType}` });
       }
       if (typeof visibility[adType] !== 'boolean') {
-        console.error('Invalid visibility value for ad:', adType, visibility[adType]);
+        console.error('Invalid visibility value for ad:', adType);
         return res.status(400).json({ message: `Invalid visibility value for ad: ${adType}` });
       }
     }
 
-    // Clean payload to remove empty entries
     const cleanedAdImages = {};
     const cleanedAdLinks = {};
     const cleanedVisibility = {};
-    
+
     validAdTypes.forEach((adType) => {
       if (adImages[adType]?.trim()) cleanedAdImages[adType] = adImages[adType];
       if (adLinks[adType]?.trim()) cleanedAdLinks[adType] = adLinks[adType];
@@ -223,67 +188,48 @@ router.post('/', async (req, res) => {
 
     console.log('Cleaned update payload:', JSON.stringify(update, null, 2));
 
-    // Ensure MongoDB connection
+    // Check MongoDB connection with retry
     if (mongoose.connection.readyState !== 1) {
-      console.error('MongoDB not connected');
-      return res.status(500).json({ message: 'Database not connected' });
+      console.error('MongoDB not connected, attempting to reconnect...');
+      try {
+        await mongoose.connect('mongodb://localhost:27017/nnrnhub', {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          serverSelectionTimeoutMS: 5000,
+        });
+        console.log('Reconnected to MongoDB');
+      } catch (reconnectError) {
+        console.error('Reconnection failed:', reconnectError);
+        return res.status(500).json({ message: 'Database not connected', error: reconnectError.message });
+      }
     }
 
-    // Perform update with error handling
     let ad;
     try {
       ad = await Ad.findOneAndUpdate(
         {},
         { $set: update },
-        { upsert: true, new: true, setDefaultsOnInsert: true, writeConcern: { w: 'majority' } }
+        { upsert: true, new: true, setDefaultsOnInsert: true }
       ).lean();
     } catch (updateError) {
       console.error('Error during findOneAndUpdate:', updateError);
-      throw new Error(`Failed to update ad document: ${updateError.message}`);
+      return res.status(500).json({ message: `Failed to update ad document: ${updateError.message}` });
     }
 
     if (!ad) {
       console.error('No ad document returned after update');
-      throw new Error('Failed to create or update ad document');
+      return res.status(500).json({ message: 'Failed to create or update ad document' });
     }
 
     console.log('Ad saved to MongoDB:', JSON.stringify(ad, null, 2));
 
-    // Verify saved ad
-    let savedAd;
-    try {
-      savedAd = await Ad.findOne().lean();
-    } catch (findError) {
-      console.error('Error verifying saved ad:', findError);
-      throw new Error(`Failed to verify saved ad: ${findError.message}`);
-    }
-
-    if (!savedAd) {
-      console.error('No saved ad document found');
-      throw new Error('Saved ad document not found');
-    }
-
-    console.log('Verified saved ad:', JSON.stringify(savedAd, null, 2));
-
-    // Sanitize response
     const responseData = {
-      adImages: savedAd.adImages || {},
-      adLinks: savedAd.adLinks || {},
-      visibility: savedAd.visibility || {},
+      adImages: ad.adImages || {},
+      adLinks: ad.adLinks || {},
+      visibility: ad.visibility || {},
     };
 
-    // Remove Mongoose metadata
-    Object.keys(responseData.adImages).forEach(key => {
-      if (key.startsWith('$')) delete responseData.adImages[key];
-    });
-    Object.keys(responseData.adLinks).forEach(key => {
-      if (key.startsWith('$')) delete responseData.adLinks[key];
-    });
-    Object.keys(responseData.visibility).forEach(key => {
-      if (key.startsWith('$')) delete responseData.visibility[key];
-    });
-
-    Object.keys(responseData.visibility).forEach((key) => {
+    validAdTypes.forEach((key) => {
       responseData[`${key}AdVisible`] = Boolean(responseData.visibility[key]);
     });
 
@@ -293,23 +239,17 @@ router.post('/', async (req, res) => {
       ad: responseData,
     });
   } catch (error) {
-    console.error('Error saving ads:', {
-      message: error.message,
-      stack: error.stack,
-      payload: JSON.stringify(req.body, null, 2),
-    });
+    console.error('Error saving ads:', error);
     res.status(500).json({ message: error.message || 'Server error when saving ads' });
   }
 });
 
-// Submit a new ad inquiry
+// Ad inquiries routes
 router.post('/inquiries', async (req, res) => {
   try {
     console.log('Received ad inquiry:', req.body);
-
     const { name, email, company, adType, message } = req.body;
 
-    // Validation
     if (!name || name.trim().length < 2) {
       return res.status(400).json({ message: 'Name is required and must be at least 2 characters' });
     }
@@ -330,7 +270,6 @@ router.post('/inquiries', async (req, res) => {
 
     await inquiry.save();
     console.log('Saved ad inquiry:', inquiry);
-
     res.status(201).json({ message: 'Inquiry submitted successfully' });
   } catch (error) {
     console.error('Error saving ad inquiry:', error);
@@ -338,7 +277,6 @@ router.post('/inquiries', async (req, res) => {
   }
 });
 
-// Get all ad inquiries (admin-only)
 router.get('/inquiries', authAdminMiddleware, async (req, res) => {
   try {
     console.log('Fetching all ad inquiries');

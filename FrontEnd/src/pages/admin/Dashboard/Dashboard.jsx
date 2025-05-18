@@ -6,7 +6,7 @@ import { RiAdminLine } from 'react-icons/ri';
 // import { useFetchBlogsQuery } from '../../../Redux/features/blogs/blogAPI';
 import { useFetchBlogsQuery } from '../../../Redux/features/blogs/blogApi';
 import { useGetUserQuery } from '../../../Redux/features/auth/authAPI';
-import { useGetCommentsQuery } from '../../../Redux/features/comments/CommentAPI';
+import { useGetCommentsQuery } from '../../../Redux/features/comments/commentAPI';
 import Blogschart from './Blogschart';
 
 

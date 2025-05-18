@@ -1,7 +1,14 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { fetchAdsFromServer, submitAds } from './adThunks';
 
-// Initial state
+const validAdTypes = [
+  'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
+  'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
+  'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
+  'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3',
+  'economyAds1', 'economyAds2', 'lifestyle1', 'lifestyle2'
+];
+
 const initialState = {
   adImages: {},
   adLinks: {},
@@ -25,6 +32,26 @@ const adSlice = createSlice({
         [ad]: newVisibility,
       };
       state[`${ad}AdVisible`] = newVisibility;
+    },
+    toggleEconomyAds: (state, action) => {
+      const enable = action.payload;
+      state.visibility = {
+        ...state.visibility,
+        economyAds1: enable,
+        economyAds2: enable,
+      };
+      state.economyAds1AdVisible = enable;
+      state.economyAds2AdVisible = enable;
+    },
+    toggleLifestyleAds: (state, action) => {
+      const enable = action.payload;
+      state.visibility = {
+        ...state.visibility,
+        lifestyle1: enable,
+        lifestyle2: enable,
+      };
+      state.lifestyle1AdVisible = enable;
+      state.lifestyle2AdVisible = enable;
     },
     setAdImage: (state, action) => {
       const { ad, imagePath } = action.payload;
@@ -58,14 +85,6 @@ const adSlice = createSlice({
       })
       .addCase(fetchAdsFromServer.fulfilled, (state, action) => {
         const payload = action.payload || {};
-        const validAdTypes = [
-          'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
-          'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
-          'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
-          'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3'
-        ];
-
-        // Sanitize state
         const adImages = {};
         const adLinks = {};
         const visibility = {};
@@ -109,14 +128,6 @@ const adSlice = createSlice({
       })
       .addCase(submitAds.fulfilled, (state, action) => {
         const payload = action.payload || {};
-        const validAdTypes = [
-          'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
-          'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
-          'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
-          'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3'
-        ];
-
-        // Sanitize state
         const adImages = {};
         const adLinks = {};
         const visibility = {};
@@ -157,5 +168,5 @@ const adSlice = createSlice({
   },
 });
 
-export const { toggleAd, setAdImage, setAdLink, clearAd, resetSubmitStatus } = adSlice.actions;
+export const { toggleAd, toggleEconomyAds, toggleLifestyleAds, setAdImage, setAdLink, clearAd, resetSubmitStatus } = adSlice.actions;
 export default adSlice.reducer;

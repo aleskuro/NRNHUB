@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { usePostCommentMutation } from '../../../Redux/features/comments/CommentAPI';
+import { usePostCommentMutation } from '../../../Redux/features/comments/commentAPI';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const PostAComment = () => {

@@ -3,6 +3,9 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaUser, FaEnvelope, FaTag, FaComment, FaPaperPlane } from 'react-icons/fa';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Messages = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -48,7 +51,7 @@ const Messages = () => {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('http://localhost:5000/api/messages', {
+      const response = await fetch(`${API_URL}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -90,7 +93,7 @@ const Messages = () => {
           <div className="relative animate-fade-in-up animation-delay-300">
             <label
               htmlFor="name"
-              className="  text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               <FaUser className="text-[#883FFF]" /> Name (Optional)
             </label>
@@ -110,7 +113,7 @@ const Messages = () => {
           <div className="relative animate-fade-in-up animation-delay-400">
             <label
               htmlFor="email"
-              className="  text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               <FaEnvelope className="text-[#883FFF]" /> Email{' '}
               <span className="text-red-500">*</span>
@@ -157,7 +160,7 @@ const Messages = () => {
           <div className="relative animate-fade-in-up animation-delay-500">
             <label
               htmlFor="subject"
-              className="  text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               <FaTag className="text-[#883FFF]" /> Subject (Optional)
             </label>
@@ -177,7 +180,7 @@ const Messages = () => {
           <div className="relative animate-fade-in-up animation-delay-600">
             <label
               htmlFor="message"
-              className="  text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+              className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
             >
               <FaComment className="text-[#883FFF]" /> Message{' '}
               <span className="text-red-500">*</span>

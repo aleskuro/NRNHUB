@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import axios from 'axios';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const BlogStorageChart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,7 +45,7 @@ const BlogStorageChart = () => {
     const fetchStorageData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('http://localhost:5000/api/analytics/storage', {
+        const response = await axios.get(`${API_URL}/api/analytics/storage`, {
           withCredentials: true,
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`, // Add if using JWT

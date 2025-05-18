@@ -11,6 +11,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'react-toastify';
 import { Navigate } from 'react-router-dom';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const BlogAnalyticsDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,7 +51,7 @@ const BlogAnalyticsDashboard = () => {
 
         // Fetch analytics data
         const analyticsResponse = await axios.get(
-          `http://localhost:5000/api/analytics/dashboard?dateRange=${selectedDateRange}`,
+          `${API_URL}/api/analytics/dashboard?dateRange=${selectedDateRange}`,
           { withCredentials: true }
         );
 
@@ -89,7 +92,7 @@ const BlogAnalyticsDashboard = () => {
         let authors = [];
         try {
           const authorsResponse = await axios.get(
-            'http://localhost:5000/api/auth/login-tracking',
+            `${API_URL}/api/auth/login-tracking`,
             { withCredentials: true }
           );
           authors = authorsResponse.data.users?.filter((u) => u.isOnline) || [];
@@ -714,7 +717,8 @@ const BlogAnalyticsDashboard = () => {
               </div>
 
               <div className="bg-white p-4 md:p-6 rounded-lg shadow">
-                <h2 className="text-lg md:text-xl font-bold mb-4">Content Performance by Length </h2> <div className="h-64 md:h-80">
+                <h2 className="text-lg md:text-xl font-bold mb-4">Content Performance by Length </h2> 
+                <div className="h-64 md:h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={analytics.performanceByLength}

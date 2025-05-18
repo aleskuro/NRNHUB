@@ -1,18 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
 import { toggleAd, setAdImage, setAdLink, clearAd, resetSubmitStatus } from '../../Redux/features/ads/adSlice';
 import { fetchAdsFromServer, submitAds } from '../../Redux/features/ads/adThunks';
 import noImage from '../../assets/images.png';
 
-// Helper to get API URL
-const getApiUrl = () => {
-  return window.location.origin;
-};
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const ManageAds = () => {
   const dispatch = useDispatch();
   const ads = useSelector((state) => state.ads);
+  const fileInputRefs = useRef({});
 
   // Fetch ads when component mounts
   useEffect(() => {
@@ -54,18 +53,63 @@ const ManageAds = () => {
     blogsHome1: '100% width (recommended 1152x224)',
     blogsHome2: '100% width (recommended 1152x224)',
     blogsHome3: '100% width (recommended 1152x224)',
+    economyAds1: '100% width (recommended 1152x224)',
+    economyAds2: '100% width (recommended 1152x224)',
+    lifestyle1: '100% width (recommended 1152x224)',
+    lifestyle2: '100% width (recommended 1152x224)',
   };
 
   const validAdTypes = [
     'mobile', 'right1', 'right2', 'right3', 'right4', 'right5',
     'left1', 'left2', 'left3', 'left4', 'left5', 'bottom',
     'navbar', 'hero', 'blogsFirst', 'blogsSecond', 'blogsThird',
-    'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3'
+    'blogsFourth', 'blogsFifth', 'blogsHome1', 'blogsHome2', 'blogsHome3',
+    'economyAds1', 'economyAds2', 'lifestyle1', 'lifestyle2'
   ];
+
+  const normalizeImageUrl = (url) => {
+    if (!url) return '';
+    let normalized = url.trim();
+    // If it's a full URL, ensure it uses API_URL
+    if (normalized.startsWith('http')) {
+      try {
+        const urlObj = new URL(normalized);
+        normalized = normalized.replace(urlObj.origin, API_URL);
+      } catch (e) {
+        console.warn(`Invalid URL format: ${normalized}`);
+      }
+    } else {
+      // Handle relative URLs (e.g., /Uploads/ads/...)
+      normalized = `${API_URL}${normalized.startsWith('/') ? '' : '/'}${normalized}`;
+    }
+    // Clean up duplicate /Uploads/ or /ads/
+    normalized = normalized.replace(/(\/Uploads\/)+/g, '/Uploads/');
+    normalized = normalized.replace(/(\/ads\/)+/g, '/ads/');
+    // Remove /undefined/
+    if (normalized.includes('/undefined/')) {
+      normalized = normalized.replace(/\/undefined\//g, '/');
+    }
+    // Ensure the path starts with /Uploads/ads/
+    if (!normalized.includes('/Uploads/ads/')) {
+      const path = normalized.split('/').pop();
+      normalized = `${API_URL}/Uploads/ads/${path}`;
+    }
+    return normalized;
+  };
 
   const handleImageChange = async (e, adType) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      console.error(`No file selected for ${adType}`);
+      toast.error(`Please select an image file for ${adType} ad`);
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      console.error(`Invalid file type for ${adType}: ${file.type}`);
+      toast.error(`Please select an image file (e.g., PNG, JPEG) for ${adType} ad`);
+      return;
+    }
 
     if (ads.adImages[adType]) {
       toast.warn(`Replacing existing image for ${adType} ad`);
@@ -75,8 +119,12 @@ const ManageAds = () => {
     formData.append('adImage', file);
 
     try {
-      const apiUrl = `${getApiUrl()}/api/ads/upload`;
-      console.log(`Uploading image to: ${apiUrl} for ${adType}`);
+      const apiUrl = `${API_URL}/api/ads/upload`;
+      console.log(`Uploading image to: ${apiUrl} for ${adType}`, {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+      });
 
       const res = await fetch(apiUrl, {
         method: 'POST',
@@ -85,32 +133,26 @@ const ManageAds = () => {
       });
 
       if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`Server responded with ${res.status}: ${errorText}`);
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `Server responded with ${res.status}`);
       }
 
-      let data;
-      try {
-        data = await res.json();
-      } catch (parseError) {
-        throw new Error(`Failed to parse server response as JSON: ${parseError.message}`);
-      }
-
+      const data = await res.json();
       console.log('Upload response data:', data);
 
-      if (!data.path || !data.path.trim()) {
-        throw new Error('Server returned empty or invalid image path');
+      if (!data.url) {
+        throw new Error('Server returned empty or invalid image URL');
       }
 
-      const imagePath = data.path;
-      const fullImagePath = imagePath.startsWith('http')
-        ? imagePath
-        : `${getApiUrl()}${imagePath}`;
+      // Normalize the URL
+      const imageUrl = normalizeImageUrl(data.url);
+      console.log(`Normalized image URL for ${adType}:`, imageUrl);
 
-      console.log(`Full image path for ${adType}:`, fullImagePath);
-
-      dispatch(setAdImage({ ad: adType, imagePath: fullImagePath }));
+      dispatch(setAdImage({ ad: adType, imagePath: imageUrl }));
       toast.success(`Image uploaded for ${adType} ad!`);
+      if (fileInputRefs.current[adType]) {
+        fileInputRefs.current[adType].value = null;
+      }
     } catch (err) {
       console.error(`Upload error for ${adType}:`, err);
       toast.error(`Failed to upload image for ${adType} ad: ${err.message}`);
@@ -119,12 +161,10 @@ const ManageAds = () => {
 
   const handleLinkChange = (e, adType) => {
     const link = e.target.value.trim();
-    console.log(`Setting link for ${adType}:`, link || 'undefined');
     dispatch(setAdLink({ ad: adType, link: link || undefined }));
   };
 
   const handleSubmit = () => {
-    // Clean payload
     const cleanedAdImages = {};
     const cleanedAdLinks = {};
     const cleanedVisibility = {};
@@ -135,15 +175,6 @@ const ManageAds = () => {
       if (ads.visibility[adType] !== undefined) cleanedVisibility[adType] = ads.visibility[adType];
     });
 
-    // Validate visibility
-    Object.keys(cleanedVisibility).forEach((key) => {
-      if (!validAdTypes.includes(key)) {
-        console.warn(`Removing invalid visibility key: ${key}`);
-        delete cleanedVisibility[key];
-      }
-    });
-
-    // Validate payload
     const visibleAds = Object.keys(cleanedVisibility).filter((adType) => cleanedVisibility[adType]);
     const missingImages = visibleAds.filter((adType) => !cleanedAdImages[adType]);
     const missingLinks = visibleAds.filter((adType) => !cleanedAdLinks[adType]);
@@ -161,14 +192,6 @@ const ManageAds = () => {
       adLinks: cleanedAdLinks,
       visibility: cleanedVisibility,
     };
-    const payloadSize = JSON.stringify(payload).length;
-    console.log('Submitting ad state:', JSON.stringify(payload, null, 2));
-    if (payloadSize > 1024 * 1024) {
-      toast.error('Payload too large. Please reduce the number of ads or clear unused entries.');
-      return;
-    }
-
-    toast.info('Submitting ad settings...');
     dispatch(submitAds());
   };
 
@@ -185,25 +208,23 @@ const ManageAds = () => {
   const renderAdImage = (adType) => {
     if (!ads.adImages[adType]) return null;
 
-    let imagePath = ads.adImages[adType];
-
-    if (imagePath && !imagePath.startsWith('http') && !imagePath.startsWith('/')) {
-      imagePath = `/${imagePath}`;
-    }
+    const imagePath = normalizeImageUrl(ads.adImages[adType]);
+    console.log(`Rendering image for ${adType}:`, imagePath);
 
     return (
       <img
         src={imagePath}
         alt={`${adType} Ad`}
-        className={`mt-2 rounded object-contain ${
-          adType === 'navbar' || adType === 'bottom' || adType === 'hero' || adType.startsWith('blogs')
-            ? 'w-full max-w-[1152px]'
+        className={`mt-2 rounded-lg object-contain ${
+          adType === 'navbar' || adType === 'bottom' || adType === 'hero' || adType.startsWith('blogs') || adType.startsWith('economyAds') || adType.startsWith('lifestyle')
+            ? 'w-full max-w-[1152px] h-56 lg:h-64'
             : adType === 'mobile'
-            ? 'w-full'
-            : 'w-48'
+            ? 'w-full h-32'
+            : 'w-48 h-32'
         }`}
         onError={(e) => {
-          console.error(`Failed to load image: ${imagePath}`);
+          console.error(`Failed to load image for ${adType}: ${imagePath}`);
+          toast.error(`Failed to load image for ${adType} ad. Please re-upload.`);
           e.target.src = noImage;
         }}
       />
@@ -247,15 +268,18 @@ const ManageAds = () => {
                   ? `Left Ad ${adType.replace('left', '')}`
                   : adType.startsWith('blogs')
                   ? `Blogs ${adType.replace('blogs', '')} Ad`
+                  : adType.startsWith('economyAds')
+                  ? `Economy Ad ${adType.replace('economyAds', '')}`
+                  : adType.startsWith('lifestyle')
+                  ? `Lifestyle Ad ${adType.replace('lifestyle', '')}`
                   : adType} Ad
               </h3>
               <p className="text-sm text-gray-600">Size: {adSizes[adType]}</p>
               <label className="block mt-2">
                 <input
                   type="checkbox"
-                  checked={ads[`${adType}AdVisible`] || false}
+                  checked={ads.visibility[adType] || false}
                   onChange={() => {
-                    console.log(`Toggling ${adType} ad`);
                     dispatch(toggleAd({ ad: adType }));
                     toast.info(
                       `${adType === 'hero'
@@ -266,18 +290,25 @@ const ManageAds = () => {
                         ? `Left Ad ${adType.replace('left', '')}`
                         : adType.startsWith('blogs')
                         ? `Blogs ${adType.replace('blogs', '')}`
-                        : adType} ad ${ads[`${adType}AdVisible`] ? 'hidden' : 'shown'}`
+                        : adType.startsWith('economyAds')
+                        ? `Economy Ad ${adType.replace('economyAds', '')}`
+                        : adType.startsWith('lifestyle')
+                        ? `Lifestyle Ad ${adType.replace('lifestyle', '')}`
+                        : adType} ad ${ads.visibility[adType] ? 'hidden' : 'shown'}`
                     );
                   }}
                 />{' '}
                 Show Ad
               </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageChange(e, adType)}
-                className="mt-2"
-              />
+              <form encType="multipart/form-data">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={(el) => (fileInputRefs.current[adType] = el)}
+                  onChange={(e) => handleImageChange(e, adType)}
+                  className="mt-2"
+                />
+              </form>
               <input
                 type="url"
                 value={ads.adLinks[adType] || ''}
@@ -296,22 +327,6 @@ const ManageAds = () => {
           ))}
         </div>
       )}
-
-      <div className="mt-6 flex justify-end gap-4">
-        <button
-          className="px-4 py-2 bg-red-600 text-white font-medium rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          onClick={handleClearAllAds}
-        >
-          Clear All Ads
-        </button>
-        <button
-          className="px-4 py-2 bg-blue-600 text-white font-medium rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-          onClick={handleSubmit}
-          disabled={ads.submitting}
-        >
-          {ads.submitting ? 'Saving...' : 'Save All Ad Settings'}
-        </button>
-      </div>
     </div>
   );
 };

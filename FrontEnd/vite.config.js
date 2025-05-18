@@ -6,14 +6,26 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   theme: {
-    colors: {
-      bgprimary: '#222',
-      primary: '#00aced',
-      Secondary: 'purple',
-      accent: '343495E', // Note: This hex code seems incomplete; should be 6 characters (e.g., '#343495')
+    extend: {
+      keyframes: {
+        glow: {
+          '0%, 100%': { 
+            textShadow: '0 0 5px rgba(196, 161, 255, 0.5)',
+            color: '#C4A1FF'
+          },
+          '50%': { 
+            textShadow: '0 0 15px rgba(196, 161, 255, 0.8)',
+            color: '#9370DB'
+          }
+        }
+      },
+      animation: {
+        'glow': 'glow 2s ease-in-out infinite'
+      }
     },
   },
-  server: {
+
+   server: {
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

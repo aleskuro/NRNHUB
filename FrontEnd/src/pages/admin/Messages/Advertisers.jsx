@@ -74,12 +74,10 @@ const Advertisers = () => {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 text-center">
           Advertise with{' '}
-          <span className="text-[#2260bf]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
-            NRN
+          <span className="text-[#7734E3]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
+            NRNHUB
           </span>
-          <span className="text-red-500" style={{ fontFamily: '"Luxurious Roman", serif' }}>
-            HUB
-          </span>
+          
         </h1>
         <p className="text-sm md:text-base text-gray-600 mt-3 text-center">
           Reach a global audience of Non-Resident Nepalis through our platform. Fill out the form below to explore advertising opportunities!

@@ -13,8 +13,9 @@ const blogRoutes = require('./Src/routes/blog.routes');
 const commentRoutes = require('./Src/routes/comment.routes');
 const subscriberRoutes = require('./Src/routes/subscriber.routes');
 const analyticsRoutes = require('./Src/routes/analyticsRoutes');
-const videoRoutes = require('./Src/routes/video.routes'); // Add video routes
-const coverRoutes = require('./Src/routes/coverRoutes'); 
+const videoRoutes = require('./Src/routes/video.routes');
+const coverRoutes = require('./Src/routes/coverRoutes');
+const adRoutes = require('./Src/routes/ad.routes');
 const port = process.env.PORT || 5000;
 
 // Middleware
@@ -25,16 +26,20 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 // CORS configuration
 app.use(
   cors({
-    origin: 'http://localhost:5173',
+    origin: [
+      'http://localhost:5173', // Local development
+      'http://172.31.4.185:5173', // Additional local IP
+      'http://65.0.131.189:5173', // Production frontend
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+    credentials: true, // Required for cookies/auth tokens
   })
 );
 
 // Ensure uploads directory exists
 const uploadsPath = path.join(__dirname, 'Src', 'Uploads');
 if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(uploadsPath, { recursive: true });
+  fs.mkdirSync(UploadsPath, { recursive: true });
   console.log(`Created directory: ${uploadsPath}`);
 }
 
@@ -55,8 +60,15 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/videos', videoRoutes); // Add video routes
+app.use('/api/videos', videoRoutes);
 app.use('/api/cover', coverRoutes);
+app.use('/api/ads', adRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!', error: err.message });
+});
 
 async function main() {
   try {
@@ -79,15 +91,10 @@ process.on('SIGINT', async () => {
   }
 });
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
-});
-
 main().then(() => {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-    console.log(`API URL: http://localhost:${port}`);
+    console.log(`API URL: http://65.0.131.189:${port}`); // Updated for production
   });
 }).catch((err) => {
   console.error('Startup Error:', err);

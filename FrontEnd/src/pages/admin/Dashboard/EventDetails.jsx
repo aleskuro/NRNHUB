@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+// Backend base URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL;
+
 const EventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -18,7 +21,7 @@ const EventDetails = () => {
         if (!id || typeof id !== 'string' || id.length !== 24) {
           throw new Error('Invalid event ID format');
         }
-        const response = await axios.get(`http://localhost:5000/api/events/${id}/details`);
+        const response = await axios.get(`${API_URL}/api/events/${id}/details`);
         console.log('API Response:', response.data); // Log response
         setDetails(response.data.registrationDetails);
         setLoading(false);
