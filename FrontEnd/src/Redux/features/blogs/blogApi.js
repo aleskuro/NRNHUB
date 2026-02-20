@@ -1,12 +1,9 @@
-// src/Redux/features/blogs/blogApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 export const blogsApi = createApi({
   reducerPath: 'blogsApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: `${API_URL}/api/`,
+    baseUrl: '/api/',
     credentials: 'include',
     prepareHeaders: (headers, { getState, endpoint }) => {
       const token = getState().auth.token;

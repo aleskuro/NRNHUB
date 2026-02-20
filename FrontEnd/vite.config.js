@@ -1,4 +1,3 @@
-// vite.config.js
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -8,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss({
-      content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'], // Required for Tailwind
+      content: ['./index.html', './src/**/*.{js,jsx,ts,tsx}'],
       theme: {
         extend: {
           keyframes: {
@@ -33,10 +32,7 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      // Keep TinyMCE working
       tinymce: path.resolve(__dirname, 'node_modules/tinymce'),
-
-      // NEW: Allow import from root/utilis/
       '@utilis': path.resolve(__dirname, 'utilis'),
     },
   },
@@ -47,12 +43,8 @@ export default defineConfig({
       output: {
         assetFileNames: (assetInfo) => {
           const extType = assetInfo.name.split('.').pop();
-          if (/woff|woff2|ttf|otf/.test(extType)) {
-            return `assets/fonts/[name].[hash][extname]`;
-          }
-          if (extType === 'css') {
-            return `assets/css/[name].[hash][extname]`;
-          }
+          if (/woff|woff2|ttf|otf/.test(extType)) return `assets/fonts/[name].[hash][extname]`;
+          if (extType === 'css') return `assets/css/[name].[hash][extname]`;
           return `assets/[name].[hash][extname]`;
         },
       },
@@ -63,29 +55,22 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
-    hmr: {
-      overlay: true,
-    },
-    // Fix: "Blocked host" on production domain
+    hmr: { overlay: true },
     allowedHosts: ['nrnhub.com.np', 'www.nrnhub.com.np', 'localhost', '.localhost'],
-
     proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
-      },
-      '/Uploads': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path,
-      },
+  '/api': {
+    target: 'http://127.0.0.1:5000',
+    changeOrigin: true,
+    secure: false,
+  },
+  '/Uploads': {
+    target: 'http://127.0.0.1:5000',
+    changeOrigin: true,
+    secure: false,
+  },
     },
   },
 
-  // Optional: Optimize deps for faster cold start
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom'],
   },
