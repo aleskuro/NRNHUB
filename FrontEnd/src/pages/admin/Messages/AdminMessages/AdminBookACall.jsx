@@ -50,7 +50,7 @@ const AdminBookACall = () => {
         </h1>
         <p className="text-sm md:text-base text-gray-600 text-center mb-8">
           View the latest call bookings submitted to{' '}
-          <span className="text-[#883FFF]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
+          <span className="text-[#883FFF]">
             NRNHUB
           </span>.
         </p>

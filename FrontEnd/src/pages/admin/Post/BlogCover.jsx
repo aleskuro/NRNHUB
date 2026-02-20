@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 // Backend base URL from environment variable
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const BlogCover = () => {
   const [file, setFile] = useState(null);
@@ -173,7 +173,13 @@ const BlogCover = () => {
         {imagePath && (
           <div className="mt-4 p-4 bg-gray-100 rounded-md">
             <p className="text-sm text-gray-700">
-              <span className="font-semibold">Uploaded Image Path:</span> {imagePath}
+              <span className="font-semibold">Uploaded Image:</span>
+              <img
+                src={`${API_URL}${imagePath}`}
+                alt="Uploaded Cover"
+                className="mt-2 w-32 h-32 object-cover rounded-md"
+                onError={(e) => console.error(`Failed to load uploaded image: ${API_URL}${imagePath}`)}
+              />
             </p>
           </div>
         )}
@@ -200,7 +206,15 @@ const BlogCover = () => {
           <ul className="space-y-3">
             {coverImages.map((image) => (
               <li key={image._id} className="p-3 bg-gray-50 rounded-md flex items-center justify-between">
-                <span className="text-sm text-gray-700 truncate">{image.path}</span>
+                <div className="flex items-center space-x-4">
+                  <img
+                    src={`${API_URL}${image.path}`}
+                    alt="Cover Image"
+                    className="w-16 h-16 object-cover rounded-md"
+                    onError={(e) => console.error(`Failed to load image: ${API_URL}${image.path}`)}
+                  />
+                  <span className="text-sm text-gray-700 truncate">{image.path}</span>
+                </div>
                 <span className="text-xs text-gray-500">
                   {new Date(image.createdAt).toLocaleDateString()}
                 </span>

@@ -123,7 +123,7 @@ const BlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, getCategory
           <BookOpen size={14} className="mr-1" />
           <span>By {getAuthorName(blog.author)}</span>
         </div>
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-200">
           <div className="flex items-center text-sm text-gray-500">
             <span className="text-gray-400">{formatDate(blog.createdAt)}</span>
           </div>
@@ -345,13 +345,9 @@ const Economy = () => {
     }
   }, []);
 
-  const getAuthorName = useCallback((author) => {
-    if (!author) return 'Editor';
-    if (typeof author === 'string') return author;
-    if (typeof author === 'object') {
-      return author.email || author.name || author.username || 'Editor';
-    }
-    return 'Editor';
+  // Modified getAuthorName to always return "NRNHUB"
+  const getAuthorName = useCallback(() => {
+    return 'NRNHUB';
   }, []);
 
   const categoryColors = useMemo(
@@ -604,7 +600,7 @@ const Economy = () => {
                     type="submit"
                     className="bg-white text-[#7734E3] px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors border-2 border-white focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:opacity-50"
                     disabled={isSubmitting}
-                    aria-label={isSubmitting ? 'Subscribing in progress' : 'Subscribe to newsletter'}
+                    aria-label={isSubmitting ? 'Submitting in progress' : 'Subscribe to newsletter'}
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit'}
                   </button>
@@ -655,7 +651,7 @@ const Economy = () => {
                 className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
                 onClick={() => window.scrollTo(0, 0)}
               >
-                Culture Insights
+                Explore Edu-Hub
               </Link>
             </div>
           </div>

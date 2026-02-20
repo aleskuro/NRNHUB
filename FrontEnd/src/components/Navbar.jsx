@@ -1,26 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux'; // ← useDispatch
 import { logout } from '../Redux/features/auth/authSlice';
 import { useFetchBlogsQuery } from '../Redux/features/blogs/blogApi';
+import { fetchAdsFromServer } from '../Redux/features/ads/adThunks'; // ← ADD THIS
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import commentor from '../assets/commentor.png';
 import noImage from '../assets/images.png';
 import logo from './logo.png';
+import { useNepaliDate, useNepaliTime } from "/utilis/nepaliDateTime.js";
 
-// Define the updated navigation links and their paths
 const Navlists = [
   { name: 'HOME', path: '/' },
   {
     name: 'LIFESTYLE',
     path: '/lifestyle',
     dropdown: [
-      { name: 'Culture', path: '/lifestyle/culture' },
-      { name: 'Entertainment', path: '/lifestyle/entertainment' },
-      { name: 'Food', path: '/lifestyle/food' },
-      { name: 'Travel', path: '/lifestyle/travel' },
       { name: 'Health', path: '/lifestyle/health' },
+      { name: 'Parenting', path: '/lifestyle/parenting' },
+      { name: 'Travel', path: '/lifestyle/travel' },
+      { name: 'Food', path: '/lifestyle/food' },
+      { name: 'Entertainment', path: '/lifestyle/entertainment' },
       { name: 'Sports', path: '/lifestyle/sports' },
     ],
   },
@@ -29,7 +30,7 @@ const Navlists = [
     path: '/economy',
     dropdown: [
       { name: 'Market', path: '/economy/market' },
-      { name: 'Small Biz', path: '/economy/small-business' },
+      { name: 'Entrepreneurship', path: '/economy/small-business' },
       { name: 'Real Estate', path: '/economy/real-estate' },
       { name: 'Start-Up', path: '/economy/startup' },
       { name: 'Global', path: '/economy/global' },
@@ -42,7 +43,6 @@ const Navlists = [
     dropdown: [
       { name: 'Interviews', path: '/podcast/interviews' },
       { name: 'Videos', path: '/podcast/videos' },
-      { name: 'Motivation', path: '/podcast/motivation' },
     ],
   },
   {
@@ -51,25 +51,27 @@ const Navlists = [
     dropdown: [
       { name: 'Finance', path: '/edu-hub/finance' },
       { name: 'Health', path: '/edu-hub/health' },
+      { name: 'Business', path: '/edu-hub/business' },
+      { name: 'Language', path: '/edu-hub/language' },
     ],
   },
   { name: 'EVENTS', path: '/events' },
   {
-    name: 'Consult With Us',
-    path: '/consult',
+    name: 'CONSULT WITH US',
+    path: '/book-call',
     dropdown: [
-      { name: 'Legal', path: '/consult/legal' },
-      { name: 'Business', path: '/consult/business' },
-      { name: 'Accommodation', path: '/consult/accommodation' },
-      { name: 'Immigration & Visa', path: '/consult/immigration-visa' },
-      { name: 'Jobs', path: '/consult/jobs' },
+      { name: 'Legal', path: '/book-call' },
+      { name: 'Business', path: '/book-call' },
+      { name: 'Real Estate', path: '/book-call' },
+      { name: 'Immigration & Visa', path: '/book-call' },
+      { name: 'Career', path: '/book-call' },
     ],
   },
 ];
 
 const Navbar = () => {
   const { user } = useSelector((state) => state.auth);
-  const { navbarAdVisible, adImages, adLinks } = useSelector((state) => state.ads);
+  const { adImages = {}, adLinks = {}, visibility = {} } = useSelector((state) => state.ads || {});
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const profileRef = useRef(null);
@@ -79,17 +81,16 @@ const Navbar = () => {
   const [isTablet, setIsTablet] = useState(window.innerWidth >= 768 && window.innerWidth < 1024);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
-  // We don't need to fetch blogs for the podcast dropdown anymore
+  const { englishDate, nepaliBsDate } = useNepaliDate();
+  const { nepaliTime } = useNepaliTime();
+
   const { isLoading } = useFetchBlogsQuery({ search: '', category: '' });
 
-  // Handle window resize for responsive design updates
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       setIsTablet(width >= 768 && width < 1024);
       setIsDesktop(width >= 1024);
-
-      // Close menu on larger screens
       if (width >= 1024 && menuOpen) {
         setMenuOpen(false);
       }
@@ -98,14 +99,6 @@ const Navbar = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [menuOpen]);
-
-  const formatDate = () =>
-    new Date().toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
 
   const handleMouseEnter = (name) => {
     clearTimeout(dropdowns[name]?.timeout);
@@ -166,7 +159,6 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Truncate title for blog dropdown
   const truncateTitle = (title, maxLength = 30) => {
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength - 3) + '...';
@@ -193,7 +185,7 @@ const Navbar = () => {
         </div>
 
         {/* Middle Section - Ad Banner */}
-        {navbarAdVisible && (
+        {visibility.navbar && (
           <div className="flex-1 flex justify-center items-center ml-2 md:ml-8 lg:ml-16 md:px-6 lg:px-14">
             {adImages.navbar ? (
               <a
@@ -223,13 +215,12 @@ const Navbar = () => {
           </div>
         )}
 
-        {/* Right Section - Date and Menu Trigger */}
+        {/* Right Section - Date, Time, Menu Trigger */}
         <div className="flex items-center ml-auto gap-4">
-          <div
-            className="text-sm text-gray-700 hidden md:block font-bold"
-            style={{ fontFamily: '"Luxurious Roman", serif' }}
-          >
-            {formatDate()}
+          <div className="hidden md:flex items-center gap-2">
+            <span className="text-sm font-semibold tracking-wide" style={{ color: '#000000' }}>{englishDate}</span>
+            <span className="text-sm text-purple-400 font-light">|</span>
+            <span className="text-sm font-semibold tracking-wide text-gray-900">{nepaliBsDate}</span>
           </div>
           <button
             className="text-2xl lg:hidden"
@@ -237,7 +228,7 @@ const Navbar = () => {
             aria-label="Toggle Menu"
             style={{ fontFamily: '"Luxurious Roman", serif' }}
           >
-            {menuOpen ? '✕' : '☰'}
+            {menuOpen ? 'Close' : 'Menu'}
           </button>
         </div>
       </div>
@@ -250,7 +241,6 @@ const Navbar = () => {
           backgroundPosition: 'left center',
         }}
       >
-        {/* Logo moved to far left */}
         <div className="mr-4 xl:mr-6">
           <NavLink to="/" className="flex items-center gap-3 xl:gap-4" onClick={handleNavLinkClick}>
             <img
@@ -285,14 +275,14 @@ const Navbar = () => {
                       }
                       onClick={handleNavLinkClick}
                     >
-                      {list.name} <span className="ml-1 text-xs">▼</span>
+                      {list.name}
                     </NavLink>
                     <div
-                      className={`absolute left-0 mt-2 w-64 bg-white border border-gray-100 rounded-lg shadow-xl z-10 transition-all duration-300 ease-in-out ${
+                      className={`absolute left-0 mt-2 bg-white border border-gray-100 rounded-lg shadow-xl z-10 transition-all duration-300 ease-in-out ${
                         dropdowns[list.name]?.visible
                           ? 'opacity-100 pointer-events-auto translate-y-0'
                           : 'opacity-0 pointer-events-none -translate-y-2'
-                      }`}
+                      } ${list.name === 'ECONOMY' ? 'w-[294px]' : 'w-64'}`}
                     >
                       <ul className={`${list.dropdown.length > 5 ? 'grid grid-cols-2' : ''}`}>
                         {list.dropdown.map((item, idx) => (
@@ -300,9 +290,15 @@ const Navbar = () => {
                             <NavLink
                               to={item.path}
                               className={({ isActive }) =>
-                                `block px-4 py-3 text-base font-medium hover:bg-gray-50 transition-all duration-200 ${
-                                  isActive ? 'text-[#C4A1FF] underline underline-offset-4 decoration-[#C4A1FF]' : 'text-gray-900'
-                                }`
+                                `block px-4 py-3 text-base font-medium 
+                                 /* TEXT-ONLY PURPLE GLOW */
+                                 hover:text-[#C4A1FF] hover:text-shadow-glow 
+                                 transition-all duration-200
+                                 ${isActive 
+                                   ? 'text-[#C4A1FF] underline underline-offset-4 decoration-[#C4A1FF]' 
+                                   : 'text-gray-900'
+                                 }
+                                 ${item.name === 'Personal Finance' ? 'whitespace-nowrap' : ''}`
                               }
                               onClick={handleNavLinkClick}
                             >
@@ -331,7 +327,6 @@ const Navbar = () => {
           </ul>
         </div>
 
-        {/* Auth Section on far right */}
         <div className="flex items-center gap-2">
           {!user ? (
             <>
@@ -366,7 +361,7 @@ const Navbar = () => {
               {dropdowns.profile?.visible && (
                 <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-100 rounded-lg shadow-xl z-50 transition-all duration-300 ease-in-out">
                   <div className="px-4 py-3 text-base font-medium text-gray-900 border-b border-gray-100">
-                    👋 {user.username || 'User'}
+                    Hello {user.username || 'User'}
                   </div>
                   {user.role === 'admin' && (
                     <NavLink
@@ -397,7 +392,6 @@ const Navbar = () => {
       {menuOpen && (
         <nav className="lg:hidden px-4 pb-6">
           <div className="flex flex-col items-center mb-4">
-            <div className="text-sm text-gray-700 mb-2">{formatDate()}</div>
             {user && (
               <div className="flex flex-col items-center gap-2 mb-3">
                 <div className="flex items-center space-x-2">
@@ -445,34 +439,47 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Navigation Items for Tablet/iPad */}
-          <ul className="flex flex-col gap-2 divide-y divide-gray-100">
+          <ul className="flex flex-col gap-2">
             {Navlists.map((list, index) => (
-              <li key={index} className="py-2">
+              <li key={index}>
                 {list.dropdown ? (
                   <div>
                     <button
-                      className="w-full text-left py-2 flex justify-between items-center text-lg font-medium"
+                      className="w-full text-left py-3 px-4 flex justify-between items-center text-lg font-semibold bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200"
                       onClick={() => toggleTabletDropdown(list.name)}
                     >
                       {list.name}
-                      <span>{mobileDropdowns[list.name] ? '▲' : '▼'}</span>
+                      <svg
+                        className={`w-5 h-5 transition-transform duration-200 ${
+                          mobileDropdowns[list.name] ? 'rotate-180' : ''
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </button>
                     {mobileDropdowns[list.name] && (
-                      <div className="mt-2 bg-gray-50 rounded-lg">
+                      <div className="mt-2 rounded-lg">
                         <ul
                           className={`grid ${
                             isTablet && list.dropdown.length > 3 ? 'md:grid-cols-2' : 'grid-cols-1'
-                          } gap-1 p-2`}
+                          } gap-2 p-2`}
                         >
                           {list.dropdown.map((item, idx) => (
                             <li key={idx}>
                               <NavLink
                                 to={item.path}
                                 className={({ isActive }) =>
-                                  `block px-4 py-2 text-base hover:bg-white rounded transition-all ${
-                                    isActive ? 'text-[#C4A1FF] font-medium' : 'text-gray-700'
-                                  }`
+                                  `block px-4 py-2.5 text-base font-medium bg-white 
+                                   /* TEXT-ONLY PURPLE GLOW */
+                                   hover:text-[#C4A1FF] hover:text-shadow-glow 
+                                   rounded-lg shadow-sm border border-gray-100 transition-all duration-200
+                                   ${isActive 
+                                     ? 'text-[#C4A1FF] bg-purple-50 border-purple-200' 
+                                     : 'text-gray-700'
+                                   }`
                                 }
                                 onClick={handleNavLinkClick}
                               >
@@ -488,8 +495,8 @@ const Navbar = () => {
                   <NavLink
                     to={list.path}
                     className={({ isActive }) =>
-                      `block py-2 text-lg font-medium hover:text-[#C4A1FF] ${
-                        isActive ? 'text-[#C4A1FF] font-bold' : ''
+                      `block py-3 px-4 text-lg font-semibold bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-200 ${
+                        isActive ? 'text-[#C4A1FF] bg-purple-50' : ''
                       }`
                     }
                     onClick={handleNavLinkClick}

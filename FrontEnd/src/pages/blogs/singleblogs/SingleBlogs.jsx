@@ -75,6 +75,7 @@ const SingleBlogs = () => {
             <SingleBlogCards blog={blog.post} />
             <CommentsCard comments={blog.comments} />
             <InterestedBlogs/>
+            <br></br><br></br><br></br>
           </div>
 
           <div className="bg-white lg:w-1/3 w-full">

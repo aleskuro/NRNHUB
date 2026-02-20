@@ -297,13 +297,9 @@ const Culture = () => {
     }
   }, []);
 
-  const getAuthorName = useCallback((author) => {
-    if (!author) return 'Editor';
-    if (typeof author === 'string') return author;
-    if (typeof author === 'object') {
-      return author.email || author.name || author.username || 'Editor';
-    }
-    return 'Editor';
+  // Modified getAuthorName to always return "NRNHUB"
+  const getAuthorName = useCallback(() => {
+    return 'NRNHUB';
   }, []);
 
   const categoryColors = useMemo(
@@ -385,7 +381,7 @@ const Culture = () => {
               </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-white leading-tight">
                 Culture <span className="text-purple-200">Blog</span>
-              </ h1>
+              </h1>
               <p className="text-lg md:text-xl text-purple-100 max-w-xl mx-auto md:mx-0 leading-relaxed">
                 Immerse yourself in the vibrant world of culture, where art, traditions, and societal trends intertwine. Discover stories that celebrate creativity, explore global heritage, and inspire meaningful connections through festivals, literature, music, and more.
               </p>

@@ -19,18 +19,22 @@ const ManageUser = () => {
 
   const navigate = useNavigate();
 
-  const handleDelete = async (id) => {
-    try {
-      const response = await deleteUser(id).unwrap();
-      console.log(response);
-      alert("User deleted successfully");
-      refetch();
-      navigate("/dashboard/users");
-      // Manually refetch users after deletion
-    } catch (error) {
-      console.error("Failed to delete user", error);
-    }
-  };
+const handleDelete = async (id) => {
+  try {
+    const response = await deleteUser(id).unwrap();
+    console.log('Delete response:', response);
+    alert('User deleted successfully');
+    refetch();
+    navigate('/dashboard/users');
+  } catch (error) {
+    console.error('Failed to delete user:', {
+      error,
+      status: error.status,
+      data: error.data,
+    });
+    alert(`Failed to delete user: ${error.data?.message || 'Unknown error'}`);
+  }
+};
 
   // edit role selection
   const handleEdit = (user) => {

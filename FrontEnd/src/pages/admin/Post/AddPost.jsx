@@ -7,7 +7,7 @@ import "react-quill/dist/quill.snow.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Suppress specific console warnings
+// Suppress specific console warnings (from Quill-based code)
 const originalConsoleError = console.error;
 console.error = (...args) => {
   if (
@@ -29,7 +29,7 @@ console.warn = (...args) => {
   originalConsoleWarn(...args);
 };
 
-// Register custom fonts with Quill
+// Register custom fonts with Quill (from Quill-based code)
 const Font = ReactQuill.Quill.import("formats/font");
 Font.whitelist = [
   "Montserrat",
@@ -47,6 +47,9 @@ Font.whitelist = [
 ];
 ReactQuill.Quill.register(Font, true);
 
+// Backend base URL from environment variable (from TinyMCE-based code)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const AddPost = () => {
   const [title, setTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
@@ -57,11 +60,13 @@ const AddPost = () => {
   const [editorContent, setEditorContent] = useState("");
   const [conclusionContent, setConclusionContent] = useState("");
   const [showConclusion, setShowConclusion] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [file, setFile] = useState(null);
   const quillRef = useRef(null);
   const conclusionQuillRef = useRef(null);
   const categoryRef = useRef(null); // Ref for category input and dropdown
 
-  // Flat category options
+  // Flat category options (shared in both codes)
   const categoryOptions = [
     "LIFESTYLE",
     "CULTURE",
@@ -83,7 +88,15 @@ const AddPost = () => {
   const navigate = useNavigate();
   const [PostBlog, { isLoading, isSuccess, isError, error, reset }] = usePostBlogMutation();
 
-  // Quill editor modules configuration
+  // Get username (from TinyMCE-based code, with fallback)
+  const getUsername = (user) => {
+    if (!user || !user.username) return "test";
+    const username = user.username.split("@")[0];
+    return username || "test";
+  };
+  const username = getUsername(user);
+
+  // Quill editor modules configuration (from Quill-based code, with custom fonts)
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, 4, 5, 6, false] }],
@@ -132,7 +145,7 @@ const AddPost = () => {
     "link",
   ];
 
-  // Handle outside clicks to close suggestions
+  // Handle outside clicks to close suggestions (shared, adapted from both)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (categoryRef.current && !categoryRef.current.contains(event.target)) {
@@ -146,6 +159,7 @@ const AddPost = () => {
     };
   }, []);
 
+  // Success/error handling (shared, from both codes)
   useEffect(() => {
     if (isSuccess) {
       toast.success("Blog post created successfully!");
@@ -174,16 +188,99 @@ const AddPost = () => {
     setEditorContent("");
     setConclusionContent("");
     setShowConclusion(false);
+    setFile(null);
   };
 
+  // Category change with uppercase (from TinyMCE-based code)
   const handleCategoryChange = (e) => {
-    setCategory(e.target.value);
+    setCategory(e.target.value.toUpperCase());
     setShowCategorySuggestions(true);
   };
 
   const selectCategory = (selectedCategory) => {
     setCategory(selectedCategory);
     setShowCategorySuggestions(false);
+  };
+
+  // Handle file selection with validation for cover image (from TinyMCE-based code)
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (!selectedFile) {
+      setFile(null);
+      return;
+    }
+
+    // Validate file type
+    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+    const videoMimeTypes = [
+      "video/mp4",
+      "video/mpeg",
+      "video/avi",
+      "video/mov",
+      "video/wmv",
+      "video/flv",
+      "video/webm",
+      "video/mkv",
+    ];
+
+    if (videoMimeTypes.includes(selectedFile.type)) {
+      toast.error("Videos are not allowed. Please select a JPEG, PNG, or WebP image.");
+      setFile(null);
+      return;
+    }
+
+    if (!allowedMimeTypes.includes(selectedFile.type)) {
+      toast.error("Only JPEG, PNG, or WebP images are allowed.");
+      setFile(null);
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
+  // Handle cover image upload (from TinyMCE-based code, adapted for no editor upload)
+  const handleUpload = async () => {
+    if (!file) {
+      toast.error("Please select an image to upload");
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("coverImage", file);
+
+    try {
+      const apiUrl = `${API_URL}/api/cover/upload`;
+
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorMessage = `Server responded with ${res.status}: ${errorText}`;
+        if (errorText.includes("ETIMEDOUT")) {
+          errorMessage = "Database connection timed out. Please check your MongoDB configuration.";
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await res.json();
+
+      if (!data.path) {
+        throw new Error("Server returned empty or invalid image path");
+      }
+
+      const imageUrl = `${API_URL}${data.path}`;
+      setCoverImg(imageUrl);
+      toast.success("Cover image uploaded successfully!");
+      setFile(null); // Clear file input
+    } catch (err) {
+      toast.error(`Failed to upload cover image: ${err.message}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -194,7 +291,7 @@ const AddPost = () => {
       }
 
       if (!coverImg) {
-        return toast.error("Please provide a cover image URL.");
+        return toast.error("Please provide a cover image URL or upload an image.");
       }
 
       if (!category) {
@@ -220,7 +317,7 @@ const AddPost = () => {
         coverImg,
         category,
         description: metaDescription,
-        author: user.username,
+        author: username,
         rating,
       };
 
@@ -233,7 +330,7 @@ const AddPost = () => {
 
   return (
     <div className="bg-white p-4 md:p-8 font-[Montserrat]">
-      <h2 className="text-xl font-semibold mb-4 md:text-2xl font-[Playfair_Display] text-indigo-800">
+      <h2 className="text-xl font-semibold mb-4 md:text-2xl text-indigo-800">
         Create A New Blog Post
       </h2>
 
@@ -267,7 +364,6 @@ const AddPost = () => {
                   theme="snow"
                   value={editorContent}
                   onChange={(content) => {
-                    console.log("Content editor HTML:", content);
                     setEditorContent(content);
                   }}
                   modules={modules}
@@ -306,7 +402,6 @@ const AddPost = () => {
                       theme="snow"
                       value={conclusionContent}
                       onChange={(content) => {
-                        console.log("Conclusion editor HTML:", content);
                         setConclusionContent(content);
                       }}
                       modules={modules}
@@ -325,9 +420,45 @@ const AddPost = () => {
               Blog Settings
             </p>
 
+            {/* Cover Image Upload Section (from TinyMCE-based code) */}
             <div>
               <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
-                Cover Image URL:
+                Upload Cover Image:
+              </label>
+              <div className="mb-4">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleFileChange}
+                  className="block w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-50 file:text-blue-700
+                    hover:file:bg-blue-100"
+                  disabled={uploading}
+                />
+              </div>
+              <button
+                onClick={handleUpload}
+                type="button"
+                disabled={uploading || !file}
+                className={`w-full py-2 px-4 rounded-md text-white font-medium
+                  ${
+                    uploading || !file
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700"
+                  }
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors`}
+              >
+                {uploading ? "Uploading..." : "Upload Image"}
+              </button>
+            </div>
+
+            {/* Cover Image URL Section (combined, with preview) */}
+            <div>
+              <label className="block font-semibold text-gray-700 mb-2 text-md font-[Raleway]">
+                Or Enter Cover Image URL:
               </label>
               <input
                 type="text"
@@ -341,7 +472,7 @@ const AddPost = () => {
                   src={coverImg}
                   alt="Cover Preview"
                   className="mt-2 w-full h-48 object-cover rounded-md"
-                  onError={() => toast.error("Invalid image URL")}
+                  onError={() => toast.error("Invalid image URL or failed to load preview")}
                 />
               )}
             </div>
@@ -355,7 +486,7 @@ const AddPost = () => {
                 value={category}
                 onChange={handleCategoryChange}
                 onFocus={() => setShowCategorySuggestions(true)}
-                onBlur={() => setTimeout(() => setShowCategorySuggestions(false), 100)}
+                onBlur={() => setTimeout(() => setShowCategorySuggestions(false), 200)}
                 className="w-full bg-gray-100 px-4 py-2 focus:outline-none rounded-md border border-gray-300 focus:border-indigo-500 font-[Open_Sans]"
                 placeholder="e.g., LIFESTYLE, CULTURE, ECONOMY"
                 required
@@ -372,7 +503,11 @@ const AddPost = () => {
                       <div
                         key={index}
                         className="px-4 py-2 cursor-pointer hover:bg-gray-100 capitalize font-[Open_Sans]"
-                        onClick={() => selectCategory(option)}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          selectCategory(option);
+                        }}
                       >
                         {option}
                       </div>
@@ -418,7 +553,7 @@ const AddPost = () => {
               </label>
               <input
                 type="text"
-                value={user?.username || ""}
+                value={username || ""}
                 className="w-full bg-gray-100 px-4 py-2 rounded-md border border-gray-300 font-[Open_Sans]"
                 disabled
               />
@@ -437,7 +572,7 @@ const AddPost = () => {
         </div>
       </form>
 
-      {/* Global styles for Quill editor */}
+      {/* Global styles for Quill editor (from Quill-based code) */}
       <style>{`
         .ql-editor {
           font-family: 'Nunito', sans-serif;

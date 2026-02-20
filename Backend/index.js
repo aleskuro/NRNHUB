@@ -1,11 +1,14 @@
+// backend/server.js
 const express = require('express');
 const app = express();
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 require('dotenv').config();
+
+// ===== ROUTES =====
 const authRoutes = require('./Src/routes/auth.user.route');
 const callRoutes = require('./Src/routes/call.routes');
 const eventRoutes = require('./Src/routes/event.routes');
@@ -15,44 +18,114 @@ const subscriberRoutes = require('./Src/routes/subscriber.routes');
 const analyticsRoutes = require('./Src/routes/analyticsRoutes');
 const videoRoutes = require('./Src/routes/video.routes');
 const coverRoutes = require('./Src/routes/coverRoutes');
-const adRoutes = require('./Src/routes/ad.routes');
-const port = process.env.PORT || 5000;
+const contactRoutes = require('./Src/routes/ContactRoutes');
+const adsRoutes = require('./Src/routes/ad.routes');
 
-// Middleware
-app.use(express.json());
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+const PORT = process.env.PORT || 5000;
 
-// CORS configuration
-app.use(
-  cors({
-    origin: [
-      'http://localhost:5173', // Local development
-      'http://172.31.4.185:5173', // Additional local IP
-      'http://65.0.131.189:5173', // Production frontend
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Required for cookies/auth tokens
-  })
-);
-
-// Ensure uploads directory exists
+// ===== UPLOAD PATHS =====
 const uploadsPath = path.join(__dirname, 'Src', 'Uploads');
-if (!fs.existsSync(uploadsPath)) {
-  fs.mkdirSync(UploadsPath, { recursive: true });
-  console.log(`Created directory: ${uploadsPath}`);
-}
+const adsUploadsPath = path.join(uploadsPath, 'ads');
 
-// Serve static files
-app.use('/Uploads', express.static(uploadsPath));
-console.log(`Serving /Uploads from: ${uploadsPath}`);
-
-// Debug route
-app.get('/api/test', (req, res) => {
-  res.json({ status: 'API is working' });
+[uploadsPath, adsUploadsPath].forEach(p => {
+  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+  console.log('Upload path:', p);
 });
 
-// Use routes
+// ===== SERVE STATIC FILES =====
+app.use('/Uploads', express.static(path.join(__dirname, 'Src', 'Uploads')));
+
+// ===== MULTER: GENERAL UPLOAD =====
+const generalStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsPath),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `${uniqueSuffix}${ext}`);
+  },
+});
+const uploadGeneral = multer({ storage: generalStorage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// ===== MULTER: AD UPLOAD =====
+const adStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, adsUploadsPath),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, `adImage-${uniqueSuffix}${ext}`);
+  },
+});
+const uploadAd = multer({
+  storage: adStorage,
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error('Invalid image type'));
+  },
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
+
+// ===== MIDDLEWARE =====
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// ===== CORS =====
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://54.161.21.19',
+  'http://54.161.21.19:5173',
+  'https://nrnhub.com.np',
+  'https://www.nrnhub.com.np',
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error('CORS blocked'));
+  },
+  credentials: true,
+}));
+
+// ===== GENERAL UPLOAD =====
+app.post('/api/upload', uploadGeneral.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  const fileUrl = `/Uploads/${req.file.filename}`;
+  res.json({ url: fileUrl });
+});
+
+// ===== AD IMAGE UPLOAD (SAVE TO DB + RETURN FULL URL) =====
+app.post('/api/ads/upload', uploadAd.single('adImage'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No ad image uploaded' });
+
+    const fileName = req.file.filename;
+    const relativePath = `/Uploads/ads/${fileName}`;
+    
+    // FORCE FULL URL
+    const base = (process.env.BACKEND_URL || 'http://localhost:5000').replace(/\/+$/, '');
+    const fullUrl = `${base.startsWith('http') ? base : 'http://' + base}${relativePath}`;
+
+    const { adType } = req.body;
+    if (!adType) return res.status(400).json({ error: 'adType is required' });
+
+    const Ad = require('./Src/model/Ad');
+    await Ad.findOneAndUpdate(
+      {},
+      { [`adImages.${adType}`]: relativePath }, // Save relative
+      { upsert: true, new: true }
+    );
+
+    res.json({ url: fullUrl }); // ← ALWAYS FULL URL
+  } catch (err) {
+    console.error('Ad upload error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ===== TEST =====
+app.get('/api/test', (req, res) => res.json({ status: 'OK' }));
+
+// ===== ROUTES =====
 app.use('/api/events', eventRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/calls', callRoutes);
@@ -62,41 +135,35 @@ app.use('/api/subscribers', subscriberRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/cover', coverRoutes);
-app.use('/api/ads', adRoutes);
+app.use('/api/contacts', contactRoutes);
+app.use('/api/ads', adsRoutes);
 
-// Error handling middleware
+// ===== ERROR & 404 =====
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!', error: err.message });
+  console.error('Error:', err.message);
+  res.status(err instanceof multer.MulterError ? 400 : 500).json({ error: err.message });
 });
 
-async function main() {
+app.use('*', (req, res) => {
+  res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
+});
+
+// ===== START =====
+async function start() {
   try {
     await mongoose.connect(process.env.MONGODB_URL);
-    console.log('MongoDB Connected successfully');
+    console.log('MongoDB Connected');
+
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`Ad Upload: POST /api/ads/upload (adImage + adType)`);
+    });
   } catch (err) {
-    console.error('MongoDB Connection Error:', err);
+    console.error('DB Error:', err.message);
     process.exit(1);
   }
 }
 
-process.on('SIGINT', async () => {
-  try {
-    await mongoose.connection.close();
-    console.log('MongoDB connection closed');
-    process.exit(0);
-  } catch (err) {
-    console.error('Error during MongoDB connection closure:', err);
-    process.exit(1);
-  }
-});
+start();
 
-main().then(() => {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`API URL: http://65.0.131.189:${port}`); // Updated for production
-  });
-}).catch((err) => {
-  console.error('Startup Error:', err);
-  process.exit(1);
-});
+module.exports = app;

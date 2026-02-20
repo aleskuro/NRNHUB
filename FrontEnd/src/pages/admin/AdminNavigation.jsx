@@ -182,6 +182,16 @@ const AdminNavigation = () => {
               >
                Upload Video
               </NavLink>
+              <NavLink
+                to="/dashboard/AdminContact"
+                className={({ isActive }) =>
+                  isActive
+                    ? 'text-blue-600 font-bold'
+                    : 'text-gray-700 hover:text-blue-500 transition duration-300 block py-2'
+                }
+              >
+               Contacted
+              </NavLink>
             </li>
           </ul>
         </nav>

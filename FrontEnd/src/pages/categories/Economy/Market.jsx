@@ -326,13 +326,9 @@ const Market = () => {
     }
   }, []);
 
-  const getAuthorName = useCallback((author) => {
-    if (!author) return 'Editor';
-    if (typeof author === 'string') return author;
-    if (typeof author === 'object') {
-      return author.email || author.name || author.username || 'Editor';
-    }
-    return 'Editor';
+  // Modified getAuthorName to always return "NRNHUB"
+  const getAuthorName = useCallback(() => {
+    return 'NRNHUB';
   }, []);
 
   const categoryColors = useMemo(
@@ -585,14 +581,14 @@ const Market = () => {
             </p>
             <div className="flex justify-center gap-4">
               <Link
-                to="/global"
+                to="/economy/global"
                 className="bg-[#1E3A8A] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#1E40AF] transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
                 onClick={() => window.scrollTo(0, 0)}
               >
                 Explore Global
               </Link>
               <Link
-                to="/personal-finance"
+                to="/economy/personal-finance"
                 className="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-400 transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
                 onClick={() => window.scrollTo(0, 0)}
               >

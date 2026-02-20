@@ -1,48 +1,38 @@
+// backend/models/ads.js
 const mongoose = require('mongoose');
 
 const adSchema = new mongoose.Schema({
   adImages: {
     type: Map,
     of: String,
-    default: {},
+    default: () => ({}),
   },
   adLinks: {
     type: Map,
     of: String,
-    default: {},
+    default: () => ({}),
   },
   visibility: {
     type: Map,
     of: Boolean,
-    default: {},
+    default: () => ({}),
   },
 }, {
   timestamps: true,
-  toJSON: { getters: true, virtuals: true },
-  toObject: { getters: true, virtuals: true },
+  toJSON: { getters: true },
+  toObject: { getters: true },
 });
 
-// Remove Mongoose metadata before saving
+// Clean internal keys
 adSchema.pre('save', function (next) {
-  const doc = this;
-  if (doc.adImages) {
-    for (const key of doc.adImages.keys()) {
-      if (key.startsWith('$')) doc.adImages.delete(key);
+  ['adImages', 'adLinks', 'visibility'].forEach(field => {
+    if (this[field]) {
+      for (const key of this[field].keys()) {
+        if (key.startsWith('$')) this[field].delete(key);
+      }
     }
-  }
-  if (doc.adLinks) {
-    for (const key of doc.adLinks.keys()) {
-      if (key.startsWith('$')) doc.adLinks.delete(key);
-    }
-  }
-  if (doc.visibility) {
-    for (const key of doc.visibility.keys()) {
-      if (key.startsWith('$')) doc.visibility.delete(key);
-    }
-  }
+  });
   next();
 });
 
-const Ad = mongoose.model('Ad', adSchema);
-
-module.exports = Ad;
+module.exports = mongoose.model('Ad', adSchema);

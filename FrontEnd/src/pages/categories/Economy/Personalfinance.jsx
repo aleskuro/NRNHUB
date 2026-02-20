@@ -301,13 +301,9 @@ const PersonalFinance = () => {
     }
   }, []);
 
-  const getAuthorName = useCallback((author) => {
-    if (!author) return 'Editor';
-    if (typeof author === 'string') return author;
-    if (typeof author === 'object') {
-      return author.email || author.name || author.username || 'Editor';
-    }
-    return 'Editor';
+  // Modified getAuthorName to always return "NRNHUB"
+  const getAuthorName = useCallback(() => {
+    return 'NRNHUB';
   }, []);
 
   const categoryColors = useMemo(
@@ -402,7 +398,7 @@ const PersonalFinance = () => {
             </div>
             <div className="md:w-5/12 flex justify-center md:justify-end">
               {isLoading && (
-                <div className="w-full max-w-sm h-64 bg-te干燥-300/30 rounded-2xl animate-pulse flex items-center justify-center">
+                <div className="w-full max-w-sm h-64 bg-teal-300/30 rounded-2xl animate-pulse flex items-center justify-center">
                   <span className="text-teal-200">Loading Featured...</span>
                 </div>
               )}

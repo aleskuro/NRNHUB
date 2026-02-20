@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-// Backend base URL from environment variable
-const API_URL = import.meta.env.VITE_API_URL;
+// Base backend URL from environment variable
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const AdminAdvertisers = () => {
   const [inquiries, setInquiries] = useState([]);
@@ -13,22 +13,21 @@ const AdminAdvertisers = () => {
     const fetchInquiries = async () => {
       try {
         const apiUrl = `${API_URL}/api/ads/inquiries`;
-        console.log(`Fetching inquiries from: ${apiUrl}`);
+        console.log('Fetching inquiries from:', apiUrl);
 
-        // Assuming JWT token is stored in localStorage or another mechanism
-        const token = localStorage.getItem('token'); // Adjust based on your auth setup
+        const token = localStorage.getItem('token'); // Adjust if using JWT auth
 
         const res = await fetch(apiUrl, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`, // Include JWT token
+            Authorization: token ? `Bearer ${token}` : '',
           },
         });
 
         if (!res.ok) {
-          const errorText = await res.text();
-          throw new Error(`Server responded with ${res.status}: ${errorText}`);
+          const text = await res.text();
+          throw new Error(`Server responded with ${res.status}: ${text}`);
         }
 
         const data = await res.json();
@@ -54,28 +53,17 @@ const AdminAdvertisers = () => {
         </h1>
         <p className="text-sm md:text-base text-gray-600 text-center mb-8">
           View the latest advertising inquiries submitted to{' '}
-          <span className="text-[#883FFF]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
-            NRN
-          </span>
-          <span className="text-[#883FFF]" style={{ fontFamily: '"Luxurious Roman", serif' }}>
-            HUB
+          <span className="text-[#883FFF]" >
+            NRNHUB
           </span>.
         </p>
 
-        {loading && (
-          <div className="text-center text-gray-600">Loading inquiries...</div>
-        )}
+        {loading && <div className="text-center text-gray-600">Loading inquiries...</div>}
 
-        {error && (
-          <div className="text-center text-[#883FFF]">
-            Error: {error}
-          </div>
-        )}
+        {error && <div className="text-center text-[#883FFF]">Error: {error}</div>}
 
         {!loading && !error && inquiries.length === 0 && (
-          <div className="text-center text-gray-600">
-            No inquiries found.
-          </div>
+          <div className="text-center text-gray-600">No inquiries found.</div>
         )}
 
         {!loading && !error && inquiries.length > 0 && (
@@ -94,29 +82,17 @@ const AdminAdvertisers = () => {
                 </thead>
                 <tbody>
                   {inquiries.map((inquiry) => (
-                    <tr
-                      key={inquiry._id}
-                      className="border-b hover:bg-gray-50"
-                    >
+                    <tr key={inquiry._id} className="border-b hover:bg-gray-50">
                       <td className="px-4 py-3">{inquiry.name}</td>
                       <td className="px-4 py-3">
-                        <a
-                          href={`mailto:${inquiry.email}`}
-                          className="text-blue-600 hover:underline"
-                        >
+                        <a href={`mailto:${inquiry.email}`} className="text-blue-600 hover:underline">
                           {inquiry.email}
                         </a>
                       </td>
-                      <td className="px-4 py-3">
-                        {inquiry.company || 'N/A'}
-                      </td>
+                      <td className="px-4 py-3">{inquiry.company || 'N/A'}</td>
                       <td className="px-4 py-3">{inquiry.adType}</td>
-                      <td className="px-4 py-3">
-                        {inquiry.message || 'No message'}
-                      </td>
-                      <td className="px-4 py-3">
-                        {new Date(inquiry.createdAt).toLocaleDateString()}
-                      </td>
+                      <td className="px-4 py-3">{inquiry.message || 'No message'}</td>
+                      <td className="px-4 py-3">{new Date(inquiry.createdAt).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>

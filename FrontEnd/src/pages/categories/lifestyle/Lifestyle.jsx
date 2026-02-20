@@ -307,13 +307,9 @@ const Lifestyle = () => {
     }
   }, []);
 
-  const getAuthorName = useCallback((author) => {
-    if (!author) return 'Editor';
-    if (typeof author === 'string') return author;
-    if (typeof author === 'object') {
-      return author.email || author.name || author.username || 'Editor';
-    }
-    return 'Editor';
+  // Modified getAuthorName to always return "NRNHUB"
+  const getAuthorName = useCallback(() => {
+    return 'NRNHUB';
   }, []);
 
   const categoryColors = useMemo(
@@ -565,7 +561,7 @@ const Lifestyle = () => {
                     type="submit"
                     className="bg-white text-[#7734E3] px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors border-2 border-white focus:outline-none focus:ring-2 focus:ring-purple-300 disabled:opacity-50"
                     disabled={isSubmitting}
-                    aria-label={isSubmitting ? 'Subscribing in progress' : 'Subscribe to newsletter'}
+                    aria-label={isSubmitting ? 'Submitting in progress' : 'Subscribe to newsletter'}
                   >
                     {isSubmitting ? 'Subscribing...' : 'Subscribe'}
                   </button>

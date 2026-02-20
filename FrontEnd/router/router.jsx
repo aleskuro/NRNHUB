@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'; // Added Navigate
 import App from '../src/App';
 import Home from '../src/pages/home/Home';
-import Social from '../src/pages/minipage/Social';
 import SingleBlogs from '../src/pages/blogs/singleblogs/SingleBlogs';
 import Login from '../src/pages/user/Login';
 import Register from '../src/pages/user/Registor';
@@ -36,7 +35,7 @@ import Video from '../src/pages/videos/Video';
 import Motivation from '../src/pages/videos/Motivation';
 import Lifestyle from '../src/pages/categories/lifestyle/Lifestyle';
 import Culture from '../src/pages/categories/lifestyle/Culture';
-import Entertainment from '../src/pages/categories/lifestyle/Entertainment';
+import Parenting from '../src/pages/categories/lifestyle/Parenting';
 import Food from '../src/pages/categories/lifestyle/Food';
 import Travel from '../src/pages/categories/lifestyle/Travel';
 import Health from '../src/pages/categories/lifestyle/Health';
@@ -51,7 +50,12 @@ import Market from '../src/pages/categories/Economy/Market';
 import Eduhub from '../src/pages/videos/Eduhub';
 import FinanceVideo from '../src/pages/videos/FinanceVideo';
 import HealthVideo from '../src/pages/videos/HealthVideo';
-
+import Contact from '../src/pages/admin/Messages/Contact';
+import AdminContact from '../src/pages/admin/Messages/AdminMessages/AdminContact';
+import About from '../src/pages/minipage/About';
+import Privacy from '../src/pages/minipage/Privacy';
+import Terms from '../src/pages/minipage/Terms';
+import Disclaimer from '../src/pages/minipage/Disclaimer';
 
 const router = createBrowserRouter([
   {
@@ -59,7 +63,6 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { path: '', element: <Home /> },
-      { path: 'social', element: <Social /> },
       { path: 'blogs', element: <Blogs /> },
       { path: 'blogs/:id', element: <SingleBlogs /> },
       { path: 'category/:category', element: <Category /> },
@@ -72,14 +75,14 @@ const router = createBrowserRouter([
       { path: 'BookACall', element: <BookACall /> },
       { path: 'events', element: <Event /> },
       // Redirect /admin/events/:id/details to /dashboard/events/:id/details
-      { path: 'admin/events/:id/details', element: <Navigate to="/dashboard/events/:id/details" replace /> },
+      // { path: 'admin/events/:id/details', element: <Navigate to="/dashboard/events/:id/details" replace /> },
       { path: 'Podcast', element: <Podcast/> },
       { path: 'podcast/interviews', element: <Interview/> },
       { path: 'Podcast/videos', element: <Video/> },
       { path: 'Podcast/Motivation', element: <Motivation/> },
       { path: 'lifestyle', element: <Lifestyle/> },
       { path: 'lifestyle/culture', element: <Culture/> },
-      { path: 'lifestyle/entertainment', element: <Entertainment/> },
+      { path: 'lifestyle/Parenting', element: <Parenting/> },
       { path: 'lifestyle/food', element: <Food/> },
       { path: 'lifestyle/travel', element: <Travel/> },
       { path: 'lifestyle/health', element: <Health/> },
@@ -94,6 +97,11 @@ const router = createBrowserRouter([
       { path: 'edu-hub', element: <Eduhub/> },
       { path: 'edu-hub/finance', element: <FinanceVideo/> },
       { path: 'edu-hub/health', element: <HealthVideo/> },
+      { path: 'Contact', element: <Contact/> },
+      { path: 'About', element: <About/> },
+      { path: 'Privacy', element: <Privacy/> },
+      { path: 'Terms', element: <Terms/> },
+      { path: 'Disclaimer', element: <Disclaimer/> },
       
      
       {
@@ -117,6 +125,7 @@ const router = createBrowserRouter([
           { path: 'Form-data', element: <FormData /> },
           { path: 'events/:id/details', element: <EventDetails /> },
           { path: 'Upload-Video', element: <UploadVideo /> },
+          { path: 'AdminContact', element: <AdminContact /> },
           
         ],
       },

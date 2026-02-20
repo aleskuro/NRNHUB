@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
@@ -162,7 +161,7 @@ const FeaturedBlogCard = ({ blog, truncateTitle, getReadTime, getAuthorName, get
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
       <div className="absolute bottom-0 left-0 p-4 text-white">
         <span className={`${getCategoryColor(blog?.category)} text-white text-xs px-3 py-1 rounded-full font-medium mb-2 inline-block`}>
-          {blog?.category || 'SMALLBIZ'}
+          {blog?.category || 'Entrepreneurship'}
         </span>
         <h3 className="text-lg font-bold line-clamp-2 mb-1">{truncateTitle(blog?.title, 40)}</h3>
         <div className="flex items-center text-xs text-gray-300">
@@ -205,9 +204,9 @@ const CompactBlogCard = ({ blog, truncateTitle, getCategoryColor }) => (
   </Link>
 );
 
-const Smallbiz = () => {
+const  Smallbiz = () => {
   const dispatch = useDispatch();
-  const [activeFilter, setActiveFilter] = useState('SMALLBIZ');
+  const [activeFilter, setActiveFilter] = useState('Entrepreneurship');
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState('');
@@ -215,7 +214,7 @@ const Smallbiz = () => {
   const { adImages, adLinks, visibility } = useSelector((state) => state.ads);
 
   useEffect(() => {
-    console.log('Fetching ads for Smallbiz page...');
+    console.log('Fetching ads for Entrepreneurship page...');
     dispatch(fetchAdsFromServer())
       .unwrap()
       .then((data) => console.log('Ads fetched successfully:', data))
@@ -226,7 +225,7 @@ const Smallbiz = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    console.log('Current ads state for Smallbiz:', {
+    console.log('Current ads state for Entrepreneurship:', {
       adImages,
       adLinks,
       visibility,
@@ -237,18 +236,18 @@ const Smallbiz = () => {
     });
   }, [adImages, adLinks, visibility]);
 
-  const { smallbizBlogs, featuredBlog, suggestedBlogs } = useMemo(() => {
-    const filteredSmallbizBlogs = blogs
-      .filter((blog) => blog.category?.toUpperCase() === 'SMALLBIZ')
+  const { EntrepreneurshipBlogs, featuredBlog, suggestedBlogs } = useMemo(() => {
+    const filteredEntrepreneurshipBlogs = blogs
+      .filter((blog) => blog.category?.toUpperCase() === 'Entrepreneurship')
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    const smallbizBlogIds = new Set(filteredSmallbizBlogs.map((blog) => blog._id));
+    const EntrepreneurshipBlogIds = new Set(filteredEntrepreneurshipBlogs.map((blog) => blog._id));
     const otherBlogs = blogs
-      .filter((blog) => !smallbizBlogIds.has(blog._id) && blog.category?.toUpperCase() !== 'SMALLBIZ')
+      .filter((blog) => !EntrepreneurshipBlogIds.has(blog._id) && blog.category?.toUpperCase() !== 'Entrepreneurship')
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
     return {
-      smallbizBlogs: filteredSmallbizBlogs,
-      featuredBlog: filteredSmallbizBlogs[0],
+      EntrepreneurshipBlogs: filteredEntrepreneurshipBlogs,
+      featuredBlog: filteredEntrepreneurshipBlogs[0],
       suggestedBlogs: otherBlogs,
     };
   }, [blogs]);
@@ -294,18 +293,14 @@ const Smallbiz = () => {
     }
   }, []);
 
-  const getAuthorName = useCallback((author) => {
-    if (!author) return 'Editor';
-    if (typeof author === 'string') return author;
-    if (typeof author === 'object') {
-      return author.email || author.name || author.username || 'Editor';
-    }
-    return 'Editor';
+  // Modified getAuthorName to always return "NRNHUB"
+  const getAuthorName = useCallback(() => {
+    return 'NRNHUB';
   }, []);
 
   const getCategoryColor = useCallback((category) => {
     const categories = {
-      smallbiz: 'bg-green-600',
+      Entrepreneurship: 'bg-green-600',
       culture: 'bg-rose-600',
       entertainment: 'bg-red-600',
       food: 'bg-amber-600',
@@ -343,10 +338,10 @@ const Smallbiz = () => {
   return (
     <div>
       <Helmet>
-        <title>Small Business Blogs | NRNHUB</title>
+        <title>Entrepreneurship Blogs | NRNHUB</title>
         <meta
           name="description"
-          content="Empower your small business with practical tips, strategies, and inspiration on entrepreneurship, marketing, finance, and growth."
+          content="Empower your Entrepreneurship with practical tips, strategies, and inspiration on entrepreneurship, marketing, finance, and growth."
         />
       </Helmet>
       {/* Hero Banner Section */}
@@ -364,10 +359,10 @@ const Smallbiz = () => {
                 Grow Your Business
               </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 text-white leading-tight">
-                Small Business <span className="text-green-200">Blog</span>
+               Entrepreneurship <span className="text-green-200">Blog</span>
               </h1>
               <p className="text-lg md:text-xl text-green-100 max-w-xl mx-auto md:mx-0 leading-relaxed">
-                Empower your small business with practical tips, strategies, and inspiration. Discover advice on
+                Empower your Entrepreneurship with practical tips, strategies, and inspiration. Discover advice on
                 entrepreneurship, marketing, finance, and growth to thrive in a competitive landscape.
               </p>
             </div>
@@ -420,15 +415,15 @@ const Smallbiz = () => {
                 <p className="text-red-500">Please try again later or check your connection.</p>
               </div>
             )}
-            {!isLoading && !error && smallbizBlogs.length === 0 && (
+            {!isLoading && !error && EntrepreneurshipBlogs.length === 0 && (
               <div className="text-center py-12 bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                 <div className="text-gray-600 text-lg font-medium mb-2">No articles found</div>
-                <p className="text-gray-500">Check back later for new small business content.</p>
+                <p className="text-gray-500">Check back later for new Entrepreneurship content.</p>
               </div>
             )}
-            {!isLoading && !error && smallbizBlogs.length > 0 && (
+            {!isLoading && !error && EntrepreneurshipBlogs.length > 0 && (
               <div className="grid md:grid-cols-2 gap-6">
-                {smallbizBlogs.map((blog) => (
+                {EntrepreneurshipBlogs.map((blog) => (
                   <BlogCard
                     key={blog._id || blog.id}
                     blog={blog}
@@ -455,7 +450,7 @@ const Smallbiz = () => {
               <div className="bg-gradient-to-r from-[#15803D] to-[#22C55E] rounded-xl shadow-sm p-6 text-white">
                 <h3 className="text-lg font-bold mb-2">Join Our Newsletter</h3>
                 <p className="text-sm mb-4 text-green-100">
-                  Get the latest small business insights delivered to your inbox.
+                  Get the latest Entrepreneurship insights delivered to your inbox.
                 </p>
                 <form onSubmit={handleSubscribe} className="flex flex-col gap-3" aria-label="Newsletter Subscription">
                   <div className="relative">
@@ -542,4 +537,3 @@ const Smallbiz = () => {
 };
 
 export default Smallbiz;
-
